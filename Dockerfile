@@ -10,7 +10,8 @@ RUN mkdir /roamium
 WORKDIR /roamium
 COPY ./roamium /roamium
 
+RUN python manage.py migrate
+
 RUN adduser -D user
 USER user
 
-RUN python manage.py migrate
