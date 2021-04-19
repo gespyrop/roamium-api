@@ -14,4 +14,3 @@ RUN python manage.py migrate
 
 RUN adduser -D user
 USER user
-
