@@ -13,7 +13,7 @@ RUN mkdir /roamium
 WORKDIR /roamium
 COPY ./roamium /roamium
 
-RUN python manage.py migrate
+COPY ./entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
-RUN adduser -D user
-USER user
+ENTRYPOINT ["./entrypoint.sh"]
