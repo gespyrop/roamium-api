@@ -11,7 +11,6 @@ class UserTests(TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.endpoint = 'user:{}'
         self.payload = {
             'email': 'test@email.com',
             'password': 'testpass',
@@ -24,7 +23,7 @@ class UserTests(TestCase):
 
     def test_create_sucessful(self):
         '''Test that user creation works'''
-        endpoint = self.endpoint.format('create')
+        endpoint = reverse('user-list')
         payload = self.payload.copy()
         response = self.client.post(endpoint, payload)
 
@@ -40,7 +39,7 @@ class UserTests(TestCase):
 
     def test_create_user_with_existing_email(self):
         '''Test that user creation fails if there is already a user with the given email'''
-        endpoint = self.endpoint.format('create')
+        endpoint = reverse('user-list')
         payload = self.payload.copy()
 
         # Create a user with the given payload
@@ -52,7 +51,7 @@ class UserTests(TestCase):
     
     def test_create_user_with_short_password(self):
         '''Test that the password provided is too short'''
-        endpoint = self.endpoint.format('create')
+        endpoint = reverse('user-list')
         payload = self.payload.copy()
         payload['password'] = 'abc'
 
@@ -62,4 +61,4 @@ class UserTests(TestCase):
         self.assertEquals(response.status_code, 400)
 
         # Test that the user was not created
-        self.assertIsNone(get_user_model().objects.get(email=payload['email']))
+        self.assertFalse(get_user_model().objects.filter(email=payload['email']).exists())
