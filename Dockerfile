@@ -13,7 +13,5 @@ RUN mkdir /roamium
 WORKDIR /roamium
 COPY ./roamium /roamium
 
-COPY ./entrypoint.sh .
 RUN chmod +x entrypoint.sh
-
 ENTRYPOINT ["./entrypoint.sh"]
