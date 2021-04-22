@@ -14,4 +14,9 @@ WORKDIR /roamium
 COPY ./roamium /roamium
 
 RUN chmod +x /roamium/entrypoint.sh
+
+RUN adduser -D user
+RUN chown -R user:user /roamium
+USER user
+
 ENTRYPOINT ["/roamium/entrypoint.sh"]
