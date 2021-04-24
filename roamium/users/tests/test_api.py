@@ -29,6 +29,9 @@ class UserTests(TestCase):
     def test_create_sucessful(self):
         '''Test that user creation works'''
         endpoint = reverse('user-list')
+
+        # Authentication not reuired for this endpoint
+        client.force_authenticate(None)
     
         payload = self.payload.copy()
         payload['email'] = 'test2@email.com'
@@ -48,6 +51,9 @@ class UserTests(TestCase):
         '''Test that user creation fails if there is already a user with the given email'''
         endpoint = reverse('user-list')
 
+        # Authentication not reuired for this endpoint
+        client.force_authenticate(None)
+
         # Create a user with the given payload
         response = client.post(endpoint, self.payload)
 
@@ -57,6 +63,10 @@ class UserTests(TestCase):
     def test_create_user_with_short_password(self):
         '''Test that the password provided is too short'''
         endpoint = reverse('user-list')
+
+        # Authentication not reuired for this endpoint
+        client.force_authenticate(None)
+
         payload = self.payload.copy()
         payload['email'] = 'test2@email.com'
         payload['password'] = 'abc'
@@ -108,10 +118,11 @@ class UserTests(TestCase):
     
     def test_update_user(self):
         '''Test that updating a user works'''
+        endpoint = reverse('user-detail', args=[self.user.id])
+        
         payload =  self.payload.copy()
         payload['first_name'] = 'test3'
 
-        endpoint = reverse('user-detail', args=[self.user.id])
         response = client.put(endpoint, payload)
 
         # Test that the response status code is 200
@@ -120,6 +131,21 @@ class UserTests(TestCase):
         # Test that the users first name was updated
         user = get_user_model().objects.get(**response.data)
         self.assertEquals(user.first_name, payload['first_name'])
+    
+    def test_update_other_user_fails(self):
+        # Create other user
+        payload = self.payload.copy()
+        payload['email'] = 'test2@email.com'
+        new_user = self.create_user(payload)
+
+        endpoint = reverse('user-detail', args=[new_user.id])
+
+        # Change other user's email
+        payload['email'] = 'test3@email.com'
+        response = client.put(endpoint, payload)
+
+        # Test that the response status code is 403
+        self.assertEquals(response.status_code, 403)
     
     def test_update_user_not_exists(self):
         '''Test that updating a user with an invalid ID returns a 404'''
@@ -142,6 +168,18 @@ class UserTests(TestCase):
         user = get_user_model().objects.get(**response.data)
         self.assertEquals(user.first_name, 'test3')
     
+    def test_partial_update_other_user_fails(self):
+        # Create other user
+        payload =  self.payload.copy()
+        payload['email'] = 'test2@email.com'
+        new_user = self.create_user(payload)
+
+        endpoint = reverse('user-detail', args=[new_user.id])
+        response = client.patch(endpoint, {'first_name': 'test3'})
+
+        # Test that the response status code is 403
+        self.assertEquals(response.status_code, 403)
+    
     def test_partial_update_user_not_exists(self):
         '''Test that partially updating a user with an invalid ID returns a 404'''
         endpoint = reverse('user-detail', args=[1])
@@ -162,6 +200,18 @@ class UserTests(TestCase):
 
         # Test that the user was deleted
         self.assertFalse(get_user_model().objects.filter(id=self.user.id).exists())
+    
+    def test_delete_other_user_fails(self):
+        # Create other user
+        payload =  self.payload.copy()
+        payload['email'] = 'test2@email.com'
+        new_user = self.create_user(payload)
+
+        endpoint = reverse('user-detail', args=[new_user.id])
+        response = client.delete(endpoint)
+
+        # Test that the response status code is 403
+        self.assertEquals(response.status_code, 403)
     
     def test_delete_user_not_exists(self):
         '''Test that deleting a user with an invalid ID returns a 404'''
