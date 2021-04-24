@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
+client = APIClient()
 
 class UserTests(TestCase):
     '''Tests for the User endpoints'''
@@ -17,15 +18,21 @@ class UserTests(TestCase):
             'first_name': 'testF',
             'last_name': 'testL',
         }
+    
+    def create_user(self, payload):
+        return get_user_model().objects.create_user(**payload)
 
     def setUp(self):
-        self.client = APIClient()
+        self.user = self.create_user(self.payload)
+        client.force_authenticate(self.user)
 
     def test_create_sucessful(self):
         '''Test that user creation works'''
         endpoint = reverse('user-list')
+    
         payload = self.payload.copy()
-        response = self.client.post(endpoint, payload)
+        payload['email'] = 'test2@email.com'
+        response = client.post(endpoint, payload)
 
         # Test that the response status code is 201
         self.assertEquals(response.status_code, 201)
@@ -40,11 +47,9 @@ class UserTests(TestCase):
     def test_create_user_with_existing_email(self):
         '''Test that user creation fails if there is already a user with the given email'''
         endpoint = reverse('user-list')
-        payload = self.payload.copy()
 
         # Create a user with the given payload
-        get_user_model().objects.create(**payload)
-        response = self.client.post(endpoint, payload)
+        response = client.post(endpoint, self.payload)
 
         # Test that the response status code is 400
         self.assertEquals(response.status_code, 400)
@@ -53,9 +58,10 @@ class UserTests(TestCase):
         '''Test that the password provided is too short'''
         endpoint = reverse('user-list')
         payload = self.payload.copy()
+        payload['email'] = 'test2@email.com'
         payload['password'] = 'abc'
 
-        response = self.client.post(endpoint, payload)
+        response = client.post(endpoint, payload)
 
         # Test that the response status code is 400
         self.assertEquals(response.status_code, 400)
@@ -66,14 +72,13 @@ class UserTests(TestCase):
     def test_get_user_list(self):
         '''Test that the user list returns a list of users'''
         endpoint = reverse('user-list')
+
+        # Create 2nd user
         payload =  self.payload.copy()
-
-        # Crete 2 users
-        get_user_model().objects.create(**payload)
         payload['email'] = 'test2@email.com'
-        get_user_model().objects.create(**payload)
+        self.create_user(payload)
 
-        response = self.client.get(endpoint)
+        response = client.get(endpoint)
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -83,23 +88,20 @@ class UserTests(TestCase):
     
     def test_get_user(self):
         '''Test that getting the details of a specific user works'''
-        payload =  self.payload.copy()
-        user = get_user_model().objects.create(**payload)
-
-        endpoint = reverse('user-detail', args=[user.id])
-        response = self.client.get(endpoint)
+        endpoint = reverse('user-detail', args=[self.user.id])
+        response = client.get(endpoint)
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
 
         # Test that the requested user's email is included in the response
-        self.assertEquals(response.data['email'], user.email)
+        self.assertEquals(response.data['email'], self.user.email)
     
     def test_get_user_not_exists(self):
         '''Test that getting a user with an invalid ID returns a 404'''
         endpoint = reverse('user-detail', args=[1])
         
-        response = self.client.get(endpoint)
+        response = client.get(endpoint)
 
         # Test that the response status code is 404
         self.assertEquals(response.status_code, 404)
@@ -107,11 +109,10 @@ class UserTests(TestCase):
     def test_update_user(self):
         '''Test that updating a user works'''
         payload =  self.payload.copy()
-        user = get_user_model().objects.create(**payload)
-
         payload['first_name'] = 'test3'
-        endpoint = reverse('user-detail', args=[user.id])
-        response = self.client.put(endpoint, payload)
+
+        endpoint = reverse('user-detail', args=[self.user.id])
+        response = client.put(endpoint, payload)
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -124,17 +125,15 @@ class UserTests(TestCase):
         '''Test that updating a user with an invalid ID returns a 404'''
         endpoint = reverse('user-detail', args=[1])
         
-        response = self.client.put(endpoint, **self.payload)
+        response = client.put(endpoint, **self.payload)
 
         # Test that the response status code is 404
         self.assertEquals(response.status_code, 404)
     
     def test_partial_update_user(self):
         '''Test that partially updating a user works'''
-        user = get_user_model().objects.create(**self.payload)
-
-        endpoint = reverse('user-detail', args=[user.id])
-        response = self.client.patch(endpoint, {'first_name': 'test3'})
+        endpoint = reverse('user-detail', args=[self.user.id])
+        response = client.patch(endpoint, {'first_name': 'test3'})
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -147,29 +146,28 @@ class UserTests(TestCase):
         '''Test that partially updating a user with an invalid ID returns a 404'''
         endpoint = reverse('user-detail', args=[1])
         
-        response = self.client.put(endpoint, {'first_name': 'test3'})
+        response = client.put(endpoint, {'first_name': 'test3'})
 
         # Test that the response status code is 404
         self.assertEquals(response.status_code, 404)
     
     def test_delete_user_exists(self):
         '''Test that user deletion works'''
-        user = get_user_model().objects.create(**self.payload)
-        endpoint = reverse('user-detail', args=[user.id])
+        endpoint = reverse('user-detail', args=[self.user.id])
         
-        response = self.client.delete(endpoint)
+        response = client.delete(endpoint)
 
         # Test that the response status code is 204
         self.assertEquals(response.status_code, 204)
 
         # Test that the user was deleted
-        self.assertFalse(get_user_model().objects.filter(id=user.id).exists())
+        self.assertFalse(get_user_model().objects.filter(id=self.user.id).exists())
     
     def test_delete_user_not_exists(self):
         '''Test that deleting a user with an invalid ID returns a 404'''
         endpoint = reverse('user-detail', args=[1])
         
-        response = self.client.delete(endpoint)
+        response = client.delete(endpoint)
 
         # Test that the response status code is 404
         self.assertEquals(response.status_code, 404)
@@ -186,15 +184,12 @@ class TokenTests(TestCase):
             'first_name': 'testF',
             'last_name': 'testL',
         }
-
-    def setUp(self):
-        self.client = APIClient()
     
     def test_obtain_token(self):
         '''Test that the token_obtain_pair endpoint returns a token for valid user credentials'''
         endpoint = reverse('token_obtain_pair')
         get_user_model().objects.create_user(**self.payload)
-        response = self.client.post(endpoint, self.payload)
+        response = client.post(endpoint, self.payload)
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -206,7 +201,7 @@ class TokenTests(TestCase):
     def test_obtain_token_invalid_user(self):
         '''Test that the token_obtain endpoint responds with an error message for invalid user credentials'''
         endpoint = reverse('token_obtain_pair')
-        response = self.client.post(endpoint, self.payload)
+        response = client.post(endpoint, self.payload)
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
@@ -220,10 +215,10 @@ class TokenTests(TestCase):
     def test_refresh_token(self):
         '''Test that the refresh_token endpoint returns a new access token when a valid refresh token is provided'''
         get_user_model().objects.create_user(**self.payload)
-        refresh_token = self.client.post(reverse('token_obtain_pair'), self.payload).data['refresh']
+        refresh_token = client.post(reverse('token_obtain_pair'), self.payload).data['refresh']
 
         endpoint = reverse('token_refresh')
-        response = self.client.post(endpoint, {'refresh': refresh_token})
+        response = client.post(endpoint, {'refresh': refresh_token})
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -234,7 +229,7 @@ class TokenTests(TestCase):
     def test_refresh_token_invalid_user(self):
         '''Test that the refresh_token endpoint does not return a new access token when an invalid refresh token is provided'''
         endpoint = reverse('token_refresh')
-        response = self.client.post(endpoint, {'refresh': 'asdfasfasdf'})
+        response = client.post(endpoint, {'refresh': 'asdfasfasdf'})
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
