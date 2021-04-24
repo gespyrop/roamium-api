@@ -109,7 +109,7 @@ class UserTests(TestCase):
     
     def test_get_user_not_exists(self):
         '''Test that getting a user with an invalid ID returns a 404'''
-        endpoint = reverse('user-detail', args=[1])
+        endpoint = reverse('user-detail', args=[2])
         
         response = client.get(endpoint)
 
@@ -149,7 +149,7 @@ class UserTests(TestCase):
     
     def test_update_user_not_exists(self):
         '''Test that updating a user with an invalid ID returns a 404'''
-        endpoint = reverse('user-detail', args=[1])
+        endpoint = reverse('user-detail', args=[2])
         
         response = client.put(endpoint, **self.payload)
 
@@ -182,7 +182,7 @@ class UserTests(TestCase):
     
     def test_partial_update_user_not_exists(self):
         '''Test that partially updating a user with an invalid ID returns a 404'''
-        endpoint = reverse('user-detail', args=[1])
+        endpoint = reverse('user-detail', args=[2])
         
         response = client.put(endpoint, {'first_name': 'test3'})
 
@@ -215,7 +215,7 @@ class UserTests(TestCase):
     
     def test_delete_user_not_exists(self):
         '''Test that deleting a user with an invalid ID returns a 404'''
-        endpoint = reverse('user-detail', args=[1])
+        endpoint = reverse('user-detail', args=[2])
         
         response = client.delete(endpoint)
 

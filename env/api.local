@@ -1,0 +1,10 @@
+# This file is used to define the 
+# local API configuration
+
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+POSTGRES_DB=roamium
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=CnTQtMEcW9qErK
+SECRET_KEY=somesupersecretkey
+DJANGO_SETTINGS_MODULE=roamium.settings.production
