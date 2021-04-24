@@ -9,7 +9,7 @@ RUN apk add --update --no-cache --virtual .tmp-build-deps gcc libc-dev linux-hea
 RUN pip install -r requirements.txt
 RUN apk del .tmp-build-deps
 
-RUN mkdir /roamium
+RUN mkdir -p /roamium/static
 WORKDIR /roamium
 COPY ./roamium /roamium
 
