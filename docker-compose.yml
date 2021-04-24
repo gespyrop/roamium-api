@@ -2,20 +2,35 @@ version: '3'
 
 services:
   api:
+    container_name: roamium-api
     build:
       context: .
-    ports:
-      - 8000:8000
-    command: python manage.py runserver 0.0.0.0:8000
-    env_file: env/postgres.local
+    command: gunicorn -w 4 -b 0.0.0.0:8000 roamium.wsgi:application
+    env_file: env/api.local
+    volumes:
+      - static_files:/roamium/static
     depends_on:
       - db
 
   db:
+    container_name: roamium-db
     image: postgres:13-alpine
     env_file: env/postgres.local
     volumes:
       - db_data:/var/lib/postgresql
   
+  nginx:
+    container_name: roamium-nginx
+    build: 
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    ports:
+      - 80:80
+    volumes:
+      - static_files:/www/static
+    depends_on:
+      - api
+  
 volumes:
   db_data:
+  static_files:
