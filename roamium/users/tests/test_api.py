@@ -173,3 +173,74 @@ class UserTests(TestCase):
 
         # Test that the response status code is 404
         self.assertEquals(response.status_code, 404)
+
+
+class TokenTests(TestCase):
+    '''Tests for the JWT endpoints'''
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.payload = {
+            'email': 'test@email.com',
+            'password': 'testpass',
+            'first_name': 'testF',
+            'last_name': 'testL',
+        }
+
+    def setUp(self):
+        self.client = APIClient()
+    
+    def test_obtain_token(self):
+        '''Test that the token_obtain_pair endpoint returns a token for valid user credentials'''
+        endpoint = reverse('token_obtain_pair')
+        get_user_model().objects.create_user(**self.payload)
+        response = self.client.post(endpoint, self.payload)
+
+        # Test that the response status code is 200
+        self.assertEquals(response.status_code, 200)
+
+        # Test that an access token and a refresh token is returned in the payload
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
+    
+    def test_obtain_token_invalid_user(self):
+        '''Test that the token_obtain endpoint responds with an error message for invalid user credentials'''
+        endpoint = reverse('token_obtain_pair')
+        response = self.client.post(endpoint, self.payload)
+
+        # Test that the response status code is 401
+        self.assertEquals(response.status_code, 401)
+
+        # Test that an access token is not returned in the payload
+        self.assertNotIn('access', response.data)
+
+        # Test that an error message is returned
+        self.assertIn('detail', response.data)
+    
+    def test_refresh_token(self):
+        '''Test that the refresh_token endpoint returns a new access token when a valid refresh token is provided'''
+        get_user_model().objects.create_user(**self.payload)
+        refresh_token = self.client.post(reverse('token_obtain_pair'), self.payload).data['refresh']
+
+        endpoint = reverse('token_refresh')
+        response = self.client.post(endpoint, {'refresh': refresh_token})
+
+        # Test that the response status code is 200
+        self.assertEquals(response.status_code, 200)
+
+        # Test that a new access token is returned
+        self.assertIn('access', response.data)
+
+    def test_refresh_token_invalid_user(self):
+        '''Test that the refresh_token endpoint does not return a new access token when an invalid refresh token is provided'''
+        endpoint = reverse('token_refresh')
+        response = self.client.post(endpoint, {'refresh': 'asdfasfasdf'})
+
+        # Test that the response status code is 401
+        self.assertEquals(response.status_code, 401)
+
+        # Test that an access token is not returned in the payload
+        self.assertNotIn('access', response.data)
+
+        # Test that an error message is returned
+        self.assertIn('detail', response.data)
