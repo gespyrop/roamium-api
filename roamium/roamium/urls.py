@@ -27,6 +27,8 @@ from rest_framework import routers
 def api_root(request, format=None):
     return Response({
         'users': reverse('user-list', request=request, format=format),
+        'login': reverse('token_obtain_pair', request=request, format=format),
+        'refresh_token': reverse('token_refresh', request=request, format=format),
     })
 
 urlpatterns = [
