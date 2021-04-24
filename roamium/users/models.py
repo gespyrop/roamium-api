@@ -14,7 +14,7 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError('The email value must be set')
         self._check_fields((first_name, last_name))
-        user = self.model(email=email, **kwargs)
+        user = self.model(email=email, first_name=first_name, last_name=last_name, **kwargs)
         user.set_password(password)
         user.save()
 
