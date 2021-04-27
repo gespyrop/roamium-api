@@ -5,11 +5,11 @@ python:
 services:
   - docker
 
-before_script: pip install docker-compose
+before_script: pip install -r requirements.txt 
 
 branches:
   only:
   - master
 
 script:
-  - docker-compose run --rm api python manage.py test
+  - python manage.py test
