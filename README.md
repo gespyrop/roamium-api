@@ -2,6 +2,8 @@
 
 The official REST API that powers the Roamium application.
 
+[![Build Status](https://travis-ci.com/gespyrop/roamium-api.svg?token=sxhDkVjzbYptxUzEnmbP&branch=master)](https://travis-ci.com/gespyrop/roamium-api)
+
 ### Architecture
 ![Architecture](docs/diagrams/Architecture.png)
 
