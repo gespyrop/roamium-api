@@ -14,7 +14,7 @@ services:
 
   db:
     container_name: roamium-db
-    image: kartoza/postgis
+    image: kartoza/postgis:12.0
     env_file: env/postgres.local
     volumes:
       - db_data:/var/lib/postgresql

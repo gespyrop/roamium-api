@@ -5,14 +5,11 @@ python:
 services:
   - docker
 
-before_install: pip install docker-compose
-
-before_script:
-  - docker-compose up -d --build
+before_script: pip install docker-compose
 
 branches:
   only:
   - master
 
 script:
-  - docker-compose exec api python manage.py test
+  - docker-compose run --rm api python manage.py test
