@@ -5,11 +5,14 @@ python:
 services:
   - docker
 
-before_script: pip install -r requirements.txt 
+before_install: pip install docker-compose
+
+before_script:
+  - docker-compose up -d --build
 
 branches:
   only:
   - master
 
 script:
-  - python roamium/manage.py test
+  - docker-compose exec api python manage.py test
