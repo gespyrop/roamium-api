@@ -12,4 +12,4 @@ branches:
   - master
 
 script:
-  - python manage.py test
+  - python roamium/manage.py test
