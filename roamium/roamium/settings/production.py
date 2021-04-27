@@ -5,7 +5,7 @@ ALLOWED_HOSTS = ['localhost']
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'HOST': os.environ.get('POSTGRES_HOST'),
         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
         'NAME': os.environ.get('POSTGRES_DB'),

@@ -5,7 +5,7 @@ services:
     container_name: roamium-api
     build:
       context: .
-    command: gunicorn -w 4 -b 0.0.0.0:8000 roamium.wsgi:application
+    command: gunicorn -w 4 -b 0.0.0.0:8000 roamium.wsgi:application    
     env_file: env/api.local
     volumes:
       - static_files:/roamium/static
@@ -14,11 +14,11 @@ services:
 
   db:
     container_name: roamium-db
-    image: postgres:13-alpine
+    image: kartoza/postgis
     env_file: env/postgres.local
     volumes:
       - db_data:/var/lib/postgresql
-  
+
   nginx:
     container_name: roamium-nginx
     build: 
