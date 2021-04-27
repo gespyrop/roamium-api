@@ -1,7 +1,7 @@
 # This file is used to define the 
 # local API configuration
 
-POSTGRES_HOST=db
+POSTGRES_HOST=roamium-db
 POSTGRES_PORT=5432
 POSTGRES_DB=roamium
 POSTGRES_USER=postgres
