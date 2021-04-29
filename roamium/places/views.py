@@ -3,7 +3,6 @@ from .models import Place
 from .serializers import PlaceSerializer
 
 class PlaceViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.IsAdminUser,) # TODO Replace with IsAdminUser
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
 

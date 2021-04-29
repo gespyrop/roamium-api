@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from places.models import Place
-from shared.test_utils import create_test_user, create_test_superuser
+from shared.test_utils import create_test_user, create_test_superuser, create_test_place
 import json
 
 PLACES_URL = reverse('place-list')
@@ -27,6 +27,14 @@ class PlaceApiTest(TestCase):
             'is_family': True,
             'is_friends': True,
         }
+    
+    def authenticateAdmin(self):
+        admin = create_test_superuser()
+        self.client.force_authenticate(admin)
+
+    def authenticateRegularUser(self):
+        user = create_test_user()
+        self.client.force_authenticate(user)
 
     def setUp(self):
         self.client = APIClient()
@@ -35,8 +43,7 @@ class PlaceApiTest(TestCase):
         '''Test that admin users can create places'''
 
         # Create and authenticate admin user
-        admin = create_test_superuser()
-        self.client.force_authenticate(admin)
+        self.authenticateAdmin()
 
         response = self.client.post(PLACES_URL, json.dumps(self.payload), content_type='application/json')
 
@@ -50,8 +57,7 @@ class PlaceApiTest(TestCase):
     def test_create_place_regular_user(self):
         '''Test that regular users can not create places'''
         # Create and authenticate regular user
-        user = create_test_user()
-        self.client.force_authenticate(user)
+        self.authenticateRegularUser()
 
         response = self.client.post(PLACES_URL, json.dumps(self.payload), content_type='application/json')
 
@@ -64,8 +70,34 @@ class PlaceApiTest(TestCase):
     
     def test_create_place_unauthenticated_user(self):
         '''Test that unauthenticated users can not create places'''
-
         response = self.client.post(PLACES_URL, json.dumps(self.payload), content_type='application/json')
 
         # Test that the response status code is 403
+        self.assertEquals(response.status_code, 401)
+    
+    def test_list_places_authenticated_user(self):
+        '''Test that authenticated users can list places'''
+        self.authenticateRegularUser()
+
+        # Create 3 places
+        for _ in range(3):
+            create_test_place()
+
+        response = self.client.get(PLACES_URL)
+
+        # Test that the response status code is 200
+        self.assertEquals(response.status_code, 200)
+
+        # Test that 3 places were returned
+        self.assertEquals(len(response.data), 3)
+
+    def test_list_places_unauthenticated_user(self):
+        '''Test that authenticated users can list places'''
+        # Create 3 places
+        for _ in range(3):
+            create_test_place()
+
+        response = self.client.get(PLACES_URL)
+
+        # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
