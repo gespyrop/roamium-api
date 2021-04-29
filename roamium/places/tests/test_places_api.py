@@ -294,4 +294,20 @@ class PlaceApiTest(TestCase):
         self.assertEquals(response.status_code, 400)
 
         # Test that an error message is returned
-        self.assertEquals(response.data.get('message'), 'Float parameters "latitude" and "longitude" are required.')
+        self.assertEquals(response.data.get('message'), "Float parameters 'latitude' and 'longitude' are required.")
+
+    def test_nearby_places_limit_parameter(self):
+        # Create and authenticate regular user
+        self.authenticateRegularUser()
+        
+        # Create 5 places
+        for _ in range(5):
+            create_test_place()
+
+        response = self.client.get(reverse('place-nearby'), data={'latitude':0.0, 'longitude':0.0, 'limit': 2})
+
+        # Test that the response status code is 200
+        self.assertEquals(response.status_code, 200)
+
+        # Test that only 2 places where returned
+        self.assertEquals(len(response.data), 2)

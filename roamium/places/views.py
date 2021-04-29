@@ -19,16 +19,24 @@ class PlaceViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def nearby(self, request):
+        # Get user location parameters
         try:
             latitude = float(request.query_params.get('latitude'))
             longitude = float(request.query_params.get('longitude'))
         except TypeError:
-            return Response({'message': 'Float parameters "latitude" and "longitude" are required.'}, 400)
+            return Response({'message': "Float parameters 'latitude' and 'longitude' are required."}, 400)
+        
+        # Get limit parameter
+        try:
+            limit = int(request.query_params.get('limit')) if 'limit' in request.query_params else 20
+        except TypeError:
+            return Response({'message': "The limit parameter must be an integer."}, 400)
 
+        # Sort places by their distance from the user's location
         user_location = Point(latitude, longitude, srid=4326)
 
         places = Place.objects.annotate(
             distance=Distance('location', user_location)
-        ).order_by('distance')[:20]
+        ).order_by('distance')[:limit]
 
         return Response(PlaceSerializer(places, many=True, context={'request': request}).data)
