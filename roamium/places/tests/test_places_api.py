@@ -260,4 +260,38 @@ class PlaceApiTest(TestCase):
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
 
-    # TODO Tests for nearby (custom action)
+    def test_nearby_places_authenticated_user(self):
+        # Create and authenticate regular user
+        self.authenticateRegularUser()
+        
+        # Create 3 places
+        create_test_place(location={'latitude': 2.0, 'longitude': 2.0})
+        closest_place = create_test_place(location={'latitude': 1.0, 'longitude': 1.0})
+        furthest_place = create_test_place(location={'latitude': 3.0, 'longitude': 3.0})
+
+        response = self.client.get(reverse('place-nearby'), data={'latitude':0.0, 'longitude':0.0})
+
+        # Test that the response status code is 200
+        self.assertEquals(response.status_code, 200)
+
+        # Test that the places were returned in the correct order
+        self.assertEquals(response.data[0].get('id'), closest_place.id)
+        self.assertEquals(response.data[-1].get('id'), furthest_place.id)
+    
+    def test_nearby_places_unauthenticated_user(self):
+        response = self.client.get(reverse('place-nearby'), data={'latitude':0.0, 'longitude':0.0})
+
+        # Test that the response status code is 401
+        self.assertEquals(response.status_code, 401)
+    
+    def test_nearby_places_invalid_parameters(self):
+        # Create and authenticate regular user
+        self.authenticateRegularUser()
+
+        response = self.client.get(reverse('place-nearby'))
+
+        # Test that the response status code is 400
+        self.assertEquals(response.status_code, 400)
+
+        # Test that an error message is returned
+        self.assertEquals(response.data.get('message'), 'Float parameters "latitude" and "longitude" are required.')

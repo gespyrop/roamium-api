@@ -33,10 +33,9 @@ def create_test_superuser(payload=None):
         payload = user_payload
     return get_user_model().objects.create_superuser(**payload)
 
-def create_test_place(payload=None):
+def create_test_place(**kwargs):
     '''Create a test place based on the given payload'''
-    if payload is None:
-        payload = place_payload
+    payload = dict(place_payload, **kwargs)
     serializer = PlaceSerializer(data=payload)
     serializer.is_valid()
     return serializer.save()
