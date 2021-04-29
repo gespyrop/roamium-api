@@ -107,22 +107,22 @@ class PlaceApiTest(TestCase):
         self.authenticateRegularUser()
 
         # Create a place
-        create_test_place()
+        place = create_test_place()
 
-        response = self.client.get(reverse('place-detail', args=(1,)))
+        response = self.client.get(reverse('place-detail', args=(place.id,)))
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
 
         # Test that the correct place was returned
-        self.assertEquals(response.data['id'], 1)
+        self.assertEquals(response.data['id'], place.id)
 
     def test_retrieve_place_unauthenticated_user(self):
         '''Test that unauthenticated users can not retrieve places'''
         # Create a places
-        create_test_place()
+        place = create_test_place()
 
-        response = self.client.get(reverse('place-detail', args=(1,)))
+        response = self.client.get(reverse('place-detail', args=(place.id,)))
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
@@ -130,7 +130,7 @@ class PlaceApiTest(TestCase):
     def test_update_place_admin_user(self):
         '''Test that admin users can update places'''
         # Create a test place
-        create_test_place()
+        place = create_test_place()
 
         # Create and authenticate admin user
         self.authenticateAdmin()
@@ -138,7 +138,7 @@ class PlaceApiTest(TestCase):
         payload = self.payload.copy()
         payload['name'] = 'New Test Name'
 
-        response = self.client.put(reverse('place-detail', args=(1,)), json.dumps(payload), content_type='application/json')
+        response = self.client.put(reverse('place-detail', args=(place.id,)), json.dumps(payload), content_type='application/json')
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -150,7 +150,7 @@ class PlaceApiTest(TestCase):
     def test_update_place_regular_user(self):
         '''Test that regular users can not update places'''
         # Create a place 
-        create_test_place()
+        place = create_test_place()
 
         # Create and authenticate regular user
         self.authenticateRegularUser()
@@ -158,7 +158,7 @@ class PlaceApiTest(TestCase):
         payload = self.payload.copy()
         payload['name'] = 'New Test Name'
 
-        response = self.client.put(reverse('place-detail', args=(1,)), json.dumps(payload), content_type='application/json')
+        response = self.client.put(reverse('place-detail', args=(place.id,)), json.dumps(payload), content_type='application/json')
 
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
@@ -170,12 +170,12 @@ class PlaceApiTest(TestCase):
     def test_update_place_unauthenticated_user(self):
         '''Test that unauthenticated users can not update places'''
         # Create a test place
-        create_test_place()
+        place = create_test_place()
 
         payload = self.payload.copy()
         payload['name'] = 'New Test Name'
 
-        response = self.client.put(reverse('place-detail', args=(1,)), json.dumps(payload), content_type='application/json')
+        response = self.client.put(reverse('place-detail', args=(place.id,)), json.dumps(payload), content_type='application/json')
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
@@ -183,12 +183,12 @@ class PlaceApiTest(TestCase):
     def test_partial_update_place_admin_user(self):
         '''Test that admin users can partially update places'''
         # Create a test place
-        create_test_place()
+        place = create_test_place()
 
         # Create and authenticate admin user
         self.authenticateAdmin()
 
-        response = self.client.patch(reverse('place-detail', args=(1,)), json.dumps({'name': 'NewName'}), content_type='application/json')
+        response = self.client.patch(reverse('place-detail', args=(place.id,)), json.dumps({'name': 'NewName'}), content_type='application/json')
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -200,12 +200,12 @@ class PlaceApiTest(TestCase):
     def test_partial_update_place_regular_user(self):
         '''Test that regular users can not partially update places'''
         # Create a place 
-        create_test_place()
+        place = create_test_place()
 
         # Create and authenticate regular user
         self.authenticateRegularUser()
 
-        response = self.client.patch(reverse('place-detail', args=(1,)), {'name': 'NewName'}, content_type='application/json')
+        response = self.client.patch(reverse('place-detail', args=(place.id,)), {'name': 'NewName'}, content_type='application/json')
 
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
@@ -217,9 +217,9 @@ class PlaceApiTest(TestCase):
     def test_update_place_unauthenticated_user(self):
         '''Test that unauthenticated users can not partially update places'''
         # Create a test place
-        create_test_place()
+        place = create_test_place()
 
-        response = self.client.patch(reverse('place-detail', args=(1,)), {'name': 'NewName'}, content_type='application/json')
+        response = self.client.patch(reverse('place-detail', args=(place.id,)), {'name': 'NewName'}, content_type='application/json')
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
@@ -227,12 +227,12 @@ class PlaceApiTest(TestCase):
     def test_destroy_place_admin_user(self):
         '''Test that admin users can destroy places'''
         # Create a test place
-        create_test_place()
+        place = create_test_place()
 
         # Create and authenticate admin user
         self.authenticateAdmin()
 
-        response = self.client.delete(reverse('place-detail', args=(1,)))
+        response = self.client.delete(reverse('place-detail', args=(place.id,)))
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 204)
@@ -240,12 +240,12 @@ class PlaceApiTest(TestCase):
     def test_destroy_place_regular_user(self):
         '''Test that regular users can not destroy places'''
         # Create a place 
-        create_test_place()
+        place = create_test_place()
 
         # Create and authenticate regular user
         self.authenticateRegularUser()
 
-        response = self.client.delete(reverse('place-detail', args=(1,)))
+        response = self.client.delete(reverse('place-detail', args=(place.id,)))
 
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
@@ -253,9 +253,9 @@ class PlaceApiTest(TestCase):
     def test_destroy_unauthenticated_user(self):
         '''Test that unauthenticated users can not destroy places'''
         # Create a test place
-        create_test_place()
+        place = create_test_place()
 
-        response = self.client.delete(reverse('place-detail', args=(1,)))
+        response = self.client.delete(reverse('place-detail', args=(place.id,)))
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
