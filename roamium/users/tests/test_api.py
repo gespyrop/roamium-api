@@ -5,6 +5,8 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
+from shared.test_utils import create_test_user
+
 client = APIClient()
 
 class UserTests(TestCase):
@@ -18,12 +20,9 @@ class UserTests(TestCase):
             'first_name': 'testF',
             'last_name': 'testL',
         }
-    
-    def create_user(self, payload):
-        return get_user_model().objects.create_user(**payload)
 
     def setUp(self):
-        self.user = self.create_user(self.payload)
+        self.user = create_test_user(self.payload)
         client.force_authenticate(self.user)
 
     def test_create_sucessful(self):
@@ -86,7 +85,7 @@ class UserTests(TestCase):
         # Create 2nd user
         payload =  self.payload.copy()
         payload['email'] = 'test2@email.com'
-        self.create_user(payload)
+        create_test_user(payload)
 
         response = client.get(endpoint)
 
@@ -136,7 +135,7 @@ class UserTests(TestCase):
         # Create other user
         payload = self.payload.copy()
         payload['email'] = 'test2@email.com'
-        new_user = self.create_user(payload)
+        new_user = create_test_user(payload)
 
         endpoint = reverse('user-detail', args=[new_user.id])
 
@@ -172,7 +171,7 @@ class UserTests(TestCase):
         # Create other user
         payload =  self.payload.copy()
         payload['email'] = 'test2@email.com'
-        new_user = self.create_user(payload)
+        new_user = create_test_user(payload)
 
         endpoint = reverse('user-detail', args=[new_user.id])
         response = client.patch(endpoint, {'first_name': 'test3'})
@@ -205,7 +204,7 @@ class UserTests(TestCase):
         # Create other user
         payload =  self.payload.copy()
         payload['email'] = 'test2@email.com'
-        new_user = self.create_user(payload)
+        new_user = create_test_user(payload)
 
         endpoint = reverse('user-detail', args=[new_user.id])
         response = client.delete(endpoint)
