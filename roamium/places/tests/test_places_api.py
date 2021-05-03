@@ -4,7 +4,8 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from places.models import Place
-from shared.test_utils import create_test_user, create_test_superuser, create_test_place
+from shared.test_utils import create_test_user, create_test_superuser, \
+    create_test_place, create_test_category, place_payload
 import json
 
 PLACES_URL = reverse('place-list')
@@ -15,18 +16,7 @@ class PlaceApiTest(TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.payload = {
-            'name': 'TestPlace',
-            'location': {
-                'latitude': 0.0,
-                'longitude': 0.0
-            },
-            'time': '00:10:00',
-            'is_bike': True,
-            'is_wheelchair': True,
-            'is_family': True,
-            'is_friends': True,
-        }
+        self.payload = place_payload.copy()
     
     def authenticateAdmin(self):
         admin = create_test_superuser()
@@ -41,7 +31,6 @@ class PlaceApiTest(TestCase):
     
     def test_create_place_admin_user(self):
         '''Test that admin users can create places'''
-
         # Create and authenticate admin user
         self.authenticateAdmin()
 
@@ -64,7 +53,7 @@ class PlaceApiTest(TestCase):
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
 
-        # Check that the place was created successfuly
+        # Check that the place was not created
         with self.assertRaises(Place.DoesNotExist):
             Place.objects.get(name=self.payload['name'])
     
@@ -77,6 +66,7 @@ class PlaceApiTest(TestCase):
     
     def test_list_places_authenticated_user(self):
         '''Test that authenticated users can list places'''
+        # Create and authenticate regular user
         self.authenticateRegularUser()
 
         # Create 3 places
@@ -104,6 +94,7 @@ class PlaceApiTest(TestCase):
 
     def test_retrieve_place_authenticated_user(self):
         '''Test that authenticated users can retrieve places'''
+        # Create and authenticate regular user
         self.authenticateRegularUser()
 
         # Create a place
@@ -119,7 +110,7 @@ class PlaceApiTest(TestCase):
 
     def test_retrieve_place_unauthenticated_user(self):
         '''Test that unauthenticated users can not retrieve places'''
-        # Create a places
+        # Create a place
         place = create_test_place()
 
         response = self.client.get(reverse('place-detail', args=(place.id,)))
@@ -163,7 +154,7 @@ class PlaceApiTest(TestCase):
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
 
-        # Check that the place was created successfuly
+        # Check that the place was not updated
         with self.assertRaises(Place.DoesNotExist):
             Place.objects.get(name=payload['name'])
     
@@ -214,7 +205,7 @@ class PlaceApiTest(TestCase):
         with self.assertRaises(Place.DoesNotExist):
             Place.objects.get(name='NewName')
         
-    def test_update_place_unauthenticated_user(self):
+    def test_partial_update_place_unauthenticated_user(self):
         '''Test that unauthenticated users can not partially update places'''
         # Create a test place
         place = create_test_place()
@@ -261,6 +252,7 @@ class PlaceApiTest(TestCase):
         self.assertEquals(response.status_code, 401)
 
     def test_nearby_places_authenticated_user(self):
+        '''Test that authenticated users can fetch nearby places'''
         # Create and authenticate regular user
         self.authenticateRegularUser()
         
@@ -279,12 +271,17 @@ class PlaceApiTest(TestCase):
         self.assertEquals(response.data[-1].get('id'), furthest_place.id)
     
     def test_nearby_places_unauthenticated_user(self):
+        '''Test that unauthenticated users can not fetch nearby places'''
         response = self.client.get(reverse('place-nearby'), data={'latitude':0.0, 'longitude':0.0})
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
     
     def test_nearby_places_invalid_parameters(self):
+        '''
+        Test that the "latitude" and "longitude" parameters 
+        are required for the nearby action
+        '''
         # Create and authenticate regular user
         self.authenticateRegularUser()
 
@@ -297,6 +294,7 @@ class PlaceApiTest(TestCase):
         self.assertEquals(response.data.get('message'), "Float parameters 'latitude' and 'longitude' are required.")
 
     def test_nearby_places_limit_parameter(self):
+        '''Test that the limit parameter works'''
         # Create and authenticate regular user
         self.authenticateRegularUser()
         
@@ -311,3 +309,24 @@ class PlaceApiTest(TestCase):
 
         # Test that only 2 places where returned
         self.assertEquals(len(response.data), 2)
+
+    def test_category_list(self):
+        '''Test that a list of categories is included to the place payload'''
+        # Create and authenticate regular user
+        self.authenticateRegularUser()
+
+        # Create test place
+        place = create_test_place()
+
+        # Add 2 categories
+        category_1 = create_test_category(name='Test 1')
+        category_2 = create_test_category(name='Test 2')
+        place.categories.add(category_1)
+        place.categories.add(category_2)
+
+        response = self.client.get(reverse('place-detail', args=(place.id,)))
+
+        # Test that both categories were returned in a list
+        self.assertIn(category_1.name, response.data['categories'])
+        self.assertIn(category_2.name, response.data['categories'])
+    

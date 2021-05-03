@@ -3,8 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
-from .models import Place
-from .serializers import PlaceSerializer
+from .models import Place, Category
+from .serializers import PlaceSerializer, CategorySerializer
 
 class PlaceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
@@ -25,6 +25,8 @@ class PlaceViewSet(viewsets.ModelViewSet):
             longitude = float(request.query_params.get('longitude'))
         except TypeError:
             return Response({'message': "Float parameters 'latitude' and 'longitude' are required."}, 400)
+        except ValueError:
+            return Response({'message': "Parameters 'latitude' and 'longitude' must be of type 'float'."}, 400)
         
         # Get limit parameter
         try:
@@ -40,3 +42,15 @@ class PlaceViewSet(viewsets.ModelViewSet):
         ).order_by('distance')[:limit]
 
         return Response(PlaceSerializer(places, many=True, context={'request': request}).data)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAdminUser]
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            return [permissions.IsAuthenticated()]
+
+        return super(CategoryViewSet, self).get_permissions()

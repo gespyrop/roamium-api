@@ -9,6 +9,7 @@ services:
     env_file: env/api.local
     volumes:
       - static_files:/roamium/static
+      # - ./roamium:/roamium
     depends_on:
       - db
 
