@@ -25,6 +25,8 @@ class PlaceViewSet(viewsets.ModelViewSet):
             longitude = float(request.query_params.get('longitude'))
         except TypeError:
             return Response({'message': "Float parameters 'latitude' and 'longitude' are required."}, 400)
+        except ValueError:
+            return Response({'message': "Parameters 'latitude' and 'longitude' must be of type 'float'."}, 400)
         
         # Get limit parameter
         try:
