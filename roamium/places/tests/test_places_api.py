@@ -31,7 +31,6 @@ class PlaceApiTest(TestCase):
     
     def test_create_place_admin_user(self):
         '''Test that admin users can create places'''
-
         # Create and authenticate admin user
         self.authenticateAdmin()
 
@@ -54,7 +53,7 @@ class PlaceApiTest(TestCase):
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
 
-        # Check that the place was created successfuly
+        # Check that the place was not created
         with self.assertRaises(Place.DoesNotExist):
             Place.objects.get(name=self.payload['name'])
     
@@ -67,6 +66,7 @@ class PlaceApiTest(TestCase):
     
     def test_list_places_authenticated_user(self):
         '''Test that authenticated users can list places'''
+        # Create and authenticate regular user
         self.authenticateRegularUser()
 
         # Create 3 places
@@ -94,6 +94,7 @@ class PlaceApiTest(TestCase):
 
     def test_retrieve_place_authenticated_user(self):
         '''Test that authenticated users can retrieve places'''
+        # Create and authenticate regular user
         self.authenticateRegularUser()
 
         # Create a place
@@ -109,7 +110,7 @@ class PlaceApiTest(TestCase):
 
     def test_retrieve_place_unauthenticated_user(self):
         '''Test that unauthenticated users can not retrieve places'''
-        # Create a places
+        # Create a place
         place = create_test_place()
 
         response = self.client.get(reverse('place-detail', args=(place.id,)))
@@ -153,7 +154,7 @@ class PlaceApiTest(TestCase):
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
 
-        # Check that the place was created successfuly
+        # Check that the place was not updated
         with self.assertRaises(Place.DoesNotExist):
             Place.objects.get(name=payload['name'])
     
