@@ -129,7 +129,7 @@ class CategoryApiTest(TestCase):
         payload = self.payload.copy()
         payload['name'] = 'New Test Name'
 
-        response = self.client.get(reverse('category-detail', args=(category.id,)))
+        response = self.client.put(reverse('category-detail', args=(category.id,)), json.dumps(payload), content_type='application/json')
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -149,7 +149,7 @@ class CategoryApiTest(TestCase):
         payload = self.payload.copy()
         payload['name'] = 'New Test Name'
 
-        response = self.client.get(reverse('category-detail', args=(category.id,)))
+        response = self.client.put(reverse('category-detail', args=(category.id,)), json.dumps(payload), content_type='application/json')
 
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)

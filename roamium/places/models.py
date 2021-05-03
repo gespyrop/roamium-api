@@ -12,7 +12,7 @@ class Category(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("category_detail", kwargs={"pk": self.pk})
+        return reverse("category-detail", kwargs={"pk": self.pk})
 
 
 class Place(models.Model):
@@ -33,4 +33,4 @@ class Place(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("place_detail", kwargs={"pk": self.pk})
+        return reverse("place-detail", kwargs={"pk": self.pk})
