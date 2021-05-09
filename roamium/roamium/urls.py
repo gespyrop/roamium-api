@@ -34,6 +34,11 @@ def api_root(request, format=None):
         'refresh_token': reverse('token_refresh', request=request, format=format),
     })
 
+# Custom Admin Panel
+admin.site.site_header = 'Roamium Admin Panel'
+admin.site.site_title = 'Roamium Admin Panel'
+admin.site.index_title = 'Welcome to Roamium'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api_root),

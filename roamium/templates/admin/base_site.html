@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block extrastyle %}
+    <style>
+        :root {
+            --primary: #068499;
+            --secondary: #0793aa;
+            --accent: #ffffff;
+            --primary-fg: #fff;
+            --body-bg: #101c25;
+            --darkened-bg: #27393F;
+            --border-color: #6cc;
+        }
+
+        input, textarea, select, .form-row p, form .button {
+            margin: 2px 0;
+            padding: 2px 3px;
+            vertical-align: middle;
+            font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+            font-weight: normal;
+            font-size: 13px;
+        }
+
+        #OpenLayers_Map_2_OpenLayers_ViewPort {
+            border-radius: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
