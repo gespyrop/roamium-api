@@ -1,0 +1,90 @@
+{% extends "rest_framework/base.html" %}
+{% load static %}
+
+{% block title %}Roamium API{% endblock %}
+
+{% block branding %}
+    <a class='navbar-brand' rel="nofollow" href='/api'>
+        Roamium API
+    </a>
+{% endblock %}
+
+{% block style %}
+    {% block bootstrap_theme %}
+        <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/bootstrap.min.css" %}"/>
+        <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/bootstrap-tweaks.css" %}"/>
+    {% endblock %}
+
+    <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/prettify.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/default.css" %}"/>
+    {% if code_style %}<style>{{ code_style }}</style>{% endif %}
+
+    <style>
+        :root {
+            --primary: #068499;
+            --secondary: #0793aa;
+            --accent: #ffffff;
+            --primary-fg: #fff;
+            --body-bg: #101c25;
+            --darkened-bg: #27393F;
+            --border-color: #6cc;
+        }
+
+        .navbar {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-top: 5px solid var(--primary);
+            border-radius: 0px;
+        }
+
+        .wrapper {
+            position: relative;
+            top: 0;
+            left: 0;
+            padding-top: 60px;
+            margin: -60px 0;
+            min-height: 100%;
+            background: var(--body-bg);
+        }
+
+        .page-header {
+            border-bottom: none;
+            padding-bottom: 0px;
+            margin: 0;
+            color: white;
+        }
+
+        .navbar-inverse .navbar-brand {
+            color: white;
+        }
+
+        .navbar-inverse:hover .navbar-brand:hover {
+            color: #9d9d9d;
+        }
+
+        body a {
+            color: var(--primary);
+        }
+
+        body a:hover {
+            color: var(--secondary);;
+        }
+
+        .str, .atv {
+            color: var(--primary);
+        }
+
+        body {
+            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #ddd;
+        }
+
+        .form-group {
+            color: var(--primary);
+        }
+
+    </style>
+{% endblock %}
