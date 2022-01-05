@@ -15,15 +15,31 @@ class Category(models.Model):
         return reverse("category-detail", kwargs={"pk": self.pk})
 
 
+class OsmPlaceManager(models.Manager):
+    def from_location(self, lat, lon, radius=1000):
+        from .overpass import QueryBuilder
+        builder = QueryBuilder()
+        builder.add_node(lat, lon, radius)
+        return builder.run_query()
+
 class Place(models.Model):
+    WHEELCHAIR_CHOICES = (
+        ('no', 'No'),
+        ('limited', 'Limited'),
+        ('yes', 'Yes'),
+    )
+
     name = models.CharField(max_length=50)
     location = models.PointField()
     time = models.DurationField()
+    wheelchair = models.CharField(choices=WHEELCHAIR_CHOICES, default='no', max_length=7)
     is_bike = models.BooleanField(default=False)
-    is_wheelchair = models.BooleanField(default=False)
     is_family = models.BooleanField(default=False)
     is_friends = models.BooleanField(default=False)
     categories = models.ManyToManyField(Category)
+
+    objects = models.Manager()
+    osm = OsmPlaceManager()
 
     class Meta:
         verbose_name = "place"

@@ -16,7 +16,7 @@ place_payload = {
     },
     'time': '00:10:00',
     'is_bike': True,
-    'is_wheelchair': True,
+    'wheelchair': 'no',
     'is_family': True,
     'is_friends': True,
 }

@@ -41,7 +41,10 @@ class PlaceViewSet(viewsets.ModelViewSet):
             distance=Distance('location', user_location)
         ).order_by('distance')[:limit]
 
-        return Response(PlaceSerializer(places, many=True, context={'request': request}).data)
+        osm_places = Place.osm.from_location(latitude, longitude, radius=100)
+        osm_places_json = PlaceSerializer(osm_places, many=True, context={'request': request}).data
+
+        return Response(PlaceSerializer(places, many=True, context={'request': request}).data + osm_places_json)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

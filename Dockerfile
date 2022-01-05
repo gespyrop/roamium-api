@@ -1,7 +1,7 @@
 FROM python:3.9-slim-buster
 LABEL author="George Spyropoulos"
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 RUN apt update && apt -y upgrade
 RUN apt install -y gcc libpq-dev netcat binutils libproj-dev gdal-bin python-gdal python3-gdal

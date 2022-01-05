@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('location', django.contrib.gis.db.models.fields.PointField(srid=4326)),
                 ('time', models.DurationField()),
                 ('is_bike', models.BooleanField(default=False)),
-                ('is_wheelchair', models.BooleanField(default=False)),
+                ('wheelchair', models.CharField(choices=[('no', 'No'), ('limited', 'Limited'), ('yes', 'Yes')], default='no', max_length=7)),
                 ('is_family', models.BooleanField(default=False)),
                 ('is_friends', models.BooleanField(default=False)),
             ],
