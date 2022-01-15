@@ -15,13 +15,6 @@ class Category(models.Model):
         return reverse("category-detail", kwargs={"pk": self.pk})
 
 
-class OsmPlaceManager(models.Manager):
-    def from_location(self, lat, lon, radius=1000):
-        from .overpass import QueryBuilder
-        builder = QueryBuilder()
-        builder.add_node(lat, lon, radius)
-        return builder.run_query()
-
 class Place(models.Model):
     WHEELCHAIR_CHOICES = (
         ('no', 'No'),
@@ -39,7 +32,6 @@ class Place(models.Model):
     categories = models.ManyToManyField(Category)
 
     objects = models.Manager()
-    osm = OsmPlaceManager()
 
     class Meta:
         verbose_name = "place"

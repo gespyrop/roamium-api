@@ -1,6 +1,7 @@
 import requests
 from django.contrib.gis.geos import Point
 
+from .serializers import PlaceSerializer
 from .models import Place
 
 
@@ -8,15 +9,15 @@ class QueryBuilder:
 
     def __init__(self):
         self.query_elements = [
-            '[out:json];',
-            'out;'
+            '[out:json];(',
+            ');out;'
         ]
     
     def add_node(self, lat, lon, radius=1000, **kwargs):
         node = 'node'
         for key, value in kwargs.items():
-            node += f'[{key}={value}]'
-        
+            node += f'[{key}={value}]' if value else f'[{key}]'
+
         node += f'(around: {radius}, {lat}, {lon});'
         self.query_elements.insert(-1, node)
     
@@ -39,7 +40,14 @@ class QueryBuilder:
             name = tags.get('name', '')
             wheelchair = tags.get('wheelchair', 'no')
 
-            place = Place(id=place_id, name=name, location=location, wheelchair=wheelchair)
+            place = PlaceSerializer(Place(id=place_id, name=name, location=location, wheelchair=wheelchair)).data
+
+            # Extract categories from tags
+            data['categories'] = []
+
+            for label in ('amenity', 'shop'):
+                if label in tags:
+                    place['categories'].append(tags[label])
 
             places.append(place)
 

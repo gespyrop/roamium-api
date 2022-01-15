@@ -3,8 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
+
 from .models import Place, Category
 from .serializers import PlaceSerializer, CategorySerializer
+from .overpass import QueryBuilder
 
 class PlaceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
@@ -40,11 +42,12 @@ class PlaceViewSet(viewsets.ModelViewSet):
         places = Place.objects.annotate(
             distance=Distance('location', user_location)
         ).order_by('distance')[:limit]
+        
+        builder = QueryBuilder()
+        builder.add_node(latitude, longitude, radius=2000, name=None, amenity=None)
+        osm_places = builder.run_query()
 
-        osm_places = Place.osm.from_location(latitude, longitude, radius=100)
-        osm_places_json = PlaceSerializer(osm_places, many=True, context={'request': request}).data
-
-        return Response(PlaceSerializer(places, many=True, context={'request': request}).data + osm_places_json)
+        return Response(PlaceSerializer(places, many=True, context={'request': request}).data + osm_places)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
