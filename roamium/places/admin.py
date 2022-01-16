@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
-from .models import Place, Category
+from .models import Place, OSMPlace, Category
 
 @admin.register(Place)
 class PlaceAdmin(OSMGeoAdmin):
@@ -14,4 +14,5 @@ class PlaceAdmin(OSMGeoAdmin):
     
     location_display.short_description = 'Location'
 
+admin.site.register(OSMPlace)
 admin.site.register(Category)

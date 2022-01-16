@@ -251,7 +251,7 @@ class PlaceApiTest(TestCase):
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
 
-    @patch('places.models.OsmPlaceManager.from_location', return_value=[])
+    @patch('places.overpass.QueryBuilder.run_query', return_value=[])
     def test_nearby_places_authenticated_user(self, *args):
         '''Test that authenticated users can fetch nearby places'''
         # Create and authenticate regular user
@@ -271,7 +271,7 @@ class PlaceApiTest(TestCase):
         self.assertEquals(response.data[0].get('id'), closest_place.id)
         self.assertEquals(response.data[-1].get('id'), furthest_place.id)
     
-    @patch('places.models.OsmPlaceManager.from_location', return_value=[])
+    @patch('places.overpass.QueryBuilder.run_query', return_value=[])
     def test_nearby_places_unauthenticated_user(self, *args):
         '''Test that unauthenticated users can not fetch nearby places'''
         response = self.client.get(reverse('place-nearby'), data={'latitude':0.0, 'longitude':0.0})
@@ -279,7 +279,7 @@ class PlaceApiTest(TestCase):
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
     
-    @patch('places.models.OsmPlaceManager.from_location', return_value=[])
+    @patch('places.overpass.QueryBuilder.run_query', return_value=[])
     def test_nearby_places_invalid_parameters(self, *args):
         '''
         Test that the "latitude" and "longitude" parameters 
@@ -296,7 +296,7 @@ class PlaceApiTest(TestCase):
         # Test that an error message is returned
         self.assertEquals(response.data.get('message'), "Float parameters 'latitude' and 'longitude' are required.")
 
-    @patch('places.models.OsmPlaceManager.from_location', return_value=[])
+    @patch('places.overpass.QueryBuilder.run_query', return_value=[])
     def test_nearby_places_limit_parameter(self, *args):
         '''Test that the limit parameter works'''
         # Create and authenticate regular user

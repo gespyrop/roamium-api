@@ -2,7 +2,9 @@ import requests
 from django.contrib.gis.geos import Point
 
 from .serializers import PlaceSerializer
-from .models import Place
+from .models import Place, OSMPlace
+
+KEYWORD_TAGS = ('amenity', 'shop', 'cuisine', 'alcohol', 'leisure', 'club', 'historic')
 
 
 class QueryBuilder:
@@ -36,16 +38,29 @@ class QueryBuilder:
             location = Point(element['lat'], element['lon'])
 
             tags = element.get('tags', {})
-
             name = tags.get('name', '')
             wheelchair = tags.get('wheelchair', 'no')
 
+            # Get mirrored local place for additional information
             place = PlaceSerializer(Place(id=place_id, name=name, location=location, wheelchair=wheelchair)).data
+            
+            try:
+                osm_place = OSMPlace.objects.get(osm_id=place_id)
+                
+                # Overwrite existing data
+                if osm_place.name:
+                    place['name'] = osm_place.name
+                
+                if osm_place.wheelchair:
+                    place['wheelchair'] = osm_place.wheelchair
+                
+                place['categories'] = [str(category) for category in osm_place.categories.all()]
+
+            except OSMPlace.DoesNotExist:
+                place['categories'] = []
 
             # Extract categories from tags
-            data['categories'] = []
-
-            for label in ('amenity', 'shop'):
+            for label in KEYWORD_TAGS:
                 if label in tags:
                     place['categories'].append(tags[label])
 

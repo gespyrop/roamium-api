@@ -15,10 +15,7 @@ place_payload = {
         'longitude': 0.0
     },
     'time': '00:10:00',
-    'is_bike': True,
     'wheelchair': 'no',
-    'is_family': True,
-    'is_friends': True,
 }
 
 category_payload = {'name': 'TestPlace'}
