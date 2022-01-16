@@ -5,7 +5,7 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
 
 from .models import Place, Category
-from .serializers import PlaceSerializer, CategorySerializer
+from .serializers import PlaceSerializer, PlaceDistanceSerializer, CategorySerializer
 from .overpass import QueryBuilder
 
 class PlaceViewSet(viewsets.ModelViewSet):
@@ -29,25 +29,19 @@ class PlaceViewSet(viewsets.ModelViewSet):
             return Response({'message': "Float parameters 'latitude' and 'longitude' are required."}, 400)
         except ValueError:
             return Response({'message': "Parameters 'latitude' and 'longitude' must be of type 'float'."}, 400)
-        
-        # Get limit parameter
-        try:
-            limit = int(request.query_params.get('limit')) if 'limit' in request.query_params else 20
-        except TypeError:
-            return Response({'message': "The limit parameter must be an integer."}, 400)
 
         # Sort places by their distance from the user's location
-        user_location = Point(latitude, longitude, srid=4326)
+        user_location = Point(longitude, latitude, srid=4326)
 
         places = Place.objects.annotate(
             distance=Distance('location', user_location)
-        ).order_by('distance')[:limit]
-        
-        builder = QueryBuilder()
-        builder.add_node(latitude, longitude, radius=2000, name=None, amenity=None)
+        ).order_by('distance')
+
+        builder = QueryBuilder(longitude, latitude, radius=2000)
+        builder.add_node(name=None, amenity=None)
         osm_places = builder.run_query()
 
-        return Response(PlaceSerializer(places, many=True, context={'request': request}).data + osm_places)
+        return Response(PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

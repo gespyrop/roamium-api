@@ -9,18 +9,22 @@ KEYWORD_TAGS = ('amenity', 'shop', 'cuisine', 'alcohol', 'leisure', 'club', 'his
 
 class QueryBuilder:
 
-    def __init__(self):
+    def __init__(self, longitude, latitude, radius=1000):
+        self.longitude = longitude
+        self.latitude = latitude
+        self.user_location = Point(self.longitude, self.latitude, srid=4326)
+        self.radius = radius
         self.query_elements = [
             '[out:json];(',
             ');out;'
         ]
     
-    def add_node(self, lat, lon, radius=1000, **kwargs):
+    def add_node(self, **kwargs):
         node = 'node'
         for key, value in kwargs.items():
             node += f'[{key}={value}]' if value else f'[{key}]'
 
-        node += f'(around: {radius}, {lat}, {lon});'
+        node += f'(around: {self.radius}, {self.latitude}, {self.longitude});'
         self.query_elements.insert(-1, node)
     
     @property
@@ -35,14 +39,18 @@ class QueryBuilder:
         
         for element in data['elements']:
             place_id = element['id']
-            location = Point(element['lat'], element['lon'])
+            location = Point(element['lon'], element['lat'], srid=4326)
 
             tags = element.get('tags', {})
             name = tags.get('name', '')
             wheelchair = tags.get('wheelchair', 'no')
 
             # Get mirrored local place for additional information
-            place = PlaceSerializer(Place(id=place_id, name=name, location=location, wheelchair=wheelchair)).data
+            place = PlaceSerializer(
+                Place(id=place_id, name=name, location=location, wheelchair=wheelchair),
+            ).data
+
+            place['distance'] = self.user_location.distance(location) * 100000
             
             try:
                 osm_place = OSMPlace.objects.get(osm_id=place_id)
