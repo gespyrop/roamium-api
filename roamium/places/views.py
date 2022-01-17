@@ -19,33 +19,42 @@ class PlaceViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated()]
 
         return super(PlaceViewSet, self).get_permissions()
-    
-    @action(detail=False, methods=['get'])
-    def nearby(self, request):
+
+    def _parse_parameters(self, request):
         # Get user location parameters
         try:
-            latitude = float(request.query_params.get('latitude'))
             longitude = float(request.query_params.get('longitude'))
+            latitude = float(request.query_params.get('latitude'))
         except TypeError:
-            return Response({'message': "Float parameters 'latitude' and 'longitude' are required."}, 400)
+            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
         except ValueError:
-            return Response({'message': "Parameters 'latitude' and 'longitude' must be of type 'float'."}, 400)
+            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
+
+        # Get radius        
+        radius = float(request.query_params.get('radius', 1000))
+
+        return longitude, latitude, radius
+
+    @action(detail=False, methods=['get'])
+    def nearby(self, request):
+        longitude, latitude, radius = self._parse_parameters(request)
 
         # Sort places by their distance from the user's location
         user_location = Point(longitude, latitude, srid=4326)
 
         places = Place.objects.annotate(
             distance=Distance('location', user_location)
-        ).order_by('distance')
+        ).filter(distance__lt=radius)
 
-        builder = QueryBuilder(longitude, latitude, radius=2000)
+        builder = QueryBuilder(longitude, latitude, radius=radius)
         builder.add_node(name=None, amenity=None)
         osm_places = builder.run_query()
 
         all_places = PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places
 
         # Sort all places by distance
-        all_places = pd.DataFrame(all_places).sort_values(by='distance').to_dict('records')
+        if len(all_places) > 0:
+            all_places = pd.DataFrame(all_places).sort_values(by='distance').to_dict('records')
 
         return Response(all_places)
 
