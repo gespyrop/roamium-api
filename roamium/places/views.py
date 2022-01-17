@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
+import pandas as pd
 
 from .models import Place, Category
 from .serializers import PlaceSerializer, PlaceDistanceSerializer, CategorySerializer
@@ -41,7 +42,12 @@ class PlaceViewSet(viewsets.ModelViewSet):
         builder.add_node(name=None, amenity=None)
         osm_places = builder.run_query()
 
-        return Response(PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places)
+        all_places = PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places
+
+        # Sort all places by distance
+        all_places = pd.DataFrame(all_places).sort_values(by='distance').to_dict('records')
+
+        return Response(all_places)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
