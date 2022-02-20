@@ -69,7 +69,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
         places = self._get_places(request)
 
         # Recommend places
-        recommendations = self.recommendation_service.recommend(places)
+        recommendations = self.recommendation_service.recommend(places, request.data)
 
         return Response(recommendations)
 
