@@ -8,19 +8,23 @@ import pandas as pd
 from .models import Place, Category
 from .serializers import PlaceSerializer, PlaceDistanceSerializer, CategorySerializer
 from .overpass import QueryBuilder
+from .services.recommendation import CosineSimilarityRecommendationService
+
 
 class PlaceViewSet(viewsets.ModelViewSet):
+    recommendation_service = CosineSimilarityRecommendationService()
     permission_classes = [permissions.IsAdminUser]
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
 
     def get_permissions(self):
-        if self.action in ('list', 'retrieve', 'nearby'):
+        if self.action in ('list', 'retrieve', 'nearby', 'recommend'):
             return [permissions.IsAuthenticated()]
 
         return super(PlaceViewSet, self).get_permissions()
 
-    def _parse_parameters(self, request):
+    def _parse_parameters(self, request) -> tuple:
+        '''Parse the request's parameters.'''
         # Get user location parameters
         try:
             longitude = float(request.query_params.get('longitude'))
@@ -35,11 +39,9 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
         return longitude, latitude, radius
 
-    @action(detail=False, methods=['get'])
-    def nearby(self, request):
+    def _get_places(self, request) -> list:
+        '''Get places within the given radius from the given set of coordinates.'''
         longitude, latitude, radius = self._parse_parameters(request)
-
-        # Sort places by their distance from the user's location
         user_location = Point(longitude, latitude, srid=4326)
 
         places = Place.objects.annotate(
@@ -50,13 +52,26 @@ class PlaceViewSet(viewsets.ModelViewSet):
         builder.add_node(name=None, amenity=None)
         osm_places = builder.run_query()
 
-        all_places = PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places
+        return PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places
+
+    @action(detail=False, methods=['GET'])
+    def nearby(self, request):
+        places = self._get_places(request)
 
         # Sort all places by distance
-        if len(all_places) > 0:
-            all_places = pd.DataFrame(all_places).sort_values(by='distance').to_dict('records')
+        if len(places) > 0:
+            places = pd.DataFrame(places).sort_values(by='distance').to_dict('records')
 
-        return Response(all_places)
+        return Response(places)
+    
+    @action(detail=False, methods=['GET'])
+    def recommend(self, request):
+        places = self._get_places(request)
+
+        # Recommend places
+        recommendations = self.recommendation_service.recommend(places)
+
+        return Response(recommendations)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

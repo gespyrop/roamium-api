@@ -6,6 +6,12 @@ from .models import Place, OSMPlace
 
 KEYWORD_TAGS = ('amenity', 'shop', 'cuisine', 'alcohol', 'leisure', 'club', 'historic')
 
+EXCLUDED_AMENITIES = (
+    'fuel', 'pharmacy', 'driving_school', 'kindergarten', 'veterinary', 'clinic',
+    'bus_station', 'school', 'bank', 'post_office', 'car_wash', 'courthouse',
+    'bureau_de_change', 'taxi', 'doctors', 'police'
+)
+
 
 class QueryBuilder:
 
@@ -23,6 +29,10 @@ class QueryBuilder:
         node = 'node'
         for key, value in kwargs.items():
             node += f'[{key}={value}]' if value else f'[{key}]'
+        
+        # Exclude specific types of amenities
+        excluded = '|'.join(EXCLUDED_AMENITIES)
+        node += f'[amenity!~"{excluded}"]'
 
         node += f'(around: {self.radius}, {self.latitude}, {self.longitude});'
         self.query_elements.insert(-1, node)
@@ -43,7 +53,7 @@ class QueryBuilder:
 
             tags = element.get('tags', {})
             name = tags.get('name', '')
-            wheelchair = tags.get('wheelchair', 'no')
+            wheelchair = tags.get('wheelchair')
 
             # Get mirrored local place for additional information
             place = PlaceSerializer(
