@@ -258,9 +258,9 @@ class PlaceApiTest(TestCase):
         self.authenticateRegularUser()
         
         # Create 3 places
-        create_test_place(location={'latitude': 2.0, 'longitude': 2.0})
-        closest_place = create_test_place(location={'latitude': 1.0, 'longitude': 1.0})
-        furthest_place = create_test_place(location={'latitude': 3.0, 'longitude': 3.0})
+        create_test_place(location={'latitude': 1.0, 'longitude': 1.0})
+        closest_place = create_test_place(location={'latitude': 0.001, 'longitude': 0.001})
+        furthest_place = create_test_place(location={'latitude': 0.002, 'longitude': 0.002})
 
         response = self.client.get(reverse('place-nearby'), data={'latitude':0.0, 'longitude':0.0})
 
@@ -294,7 +294,7 @@ class PlaceApiTest(TestCase):
         self.assertEquals(response.status_code, 400)
 
         # Test that an error message is returned
-        self.assertEquals(response.data.get('message'), "Float parameters 'latitude' and 'longitude' are required.")
+        self.assertEquals(response.data.get('message'), "Float parameters 'longitude' and 'latitude' are required.")
 
     def test_category_list(self):
         '''Test that a list of categories is included to the place payload'''

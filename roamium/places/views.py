@@ -26,13 +26,8 @@ class PlaceViewSet(viewsets.ModelViewSet):
     def _parse_parameters(self, request) -> tuple:
         '''Parse the request's parameters.'''
         # Get user location parameters
-        try:
-            longitude = float(request.query_params.get('longitude'))
-            latitude = float(request.query_params.get('latitude'))
-        except TypeError:
-            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
-        except ValueError:
-            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
+        longitude = float(request.query_params.get('longitude'))
+        latitude = float(request.query_params.get('latitude'))
 
         # Get radius        
         radius = float(request.query_params.get('radius', 1000))
@@ -56,7 +51,12 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def nearby(self, request):
-        places = self._get_places(request)
+        try:
+            places = self._get_places(request)
+        except TypeError:
+            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
+        except ValueError:
+            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
 
         # Sort all places by distance
         if len(places) > 0:
@@ -66,7 +66,12 @@ class PlaceViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['GET'])
     def recommend(self, request):
-        places = self._get_places(request)
+        try:
+            places = self._get_places(request)
+        except TypeError:
+            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
+        except ValueError:
+            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
 
         # Recommend places
         recommendations = self.recommendation_service.recommend(places, request.data)
