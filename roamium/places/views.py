@@ -18,7 +18,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
     serializer_class = PlaceSerializer
 
     def get_permissions(self):
-        if self.action in ('list', 'retrieve', 'nearby', 'recommend'):
+        if self.action in ('list', 'retrieve', 'nearby', 'nearby_categories', 'recommend'):
             return [permissions.IsAuthenticated()]
 
         return super(PlaceViewSet, self).get_permissions()
@@ -63,6 +63,23 @@ class PlaceViewSet(viewsets.ModelViewSet):
             places = pd.DataFrame(places).sort_values(by='distance').to_dict('records')
 
         return Response(places)
+    
+    @action(detail=False, methods=['GET'], url_path='nearby/categories')
+    def nearby_categories(self, request):
+        try:
+            places = self._get_places(request)
+        except TypeError:
+            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
+        except ValueError:
+            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
+
+        # Use a set to collect all the discrete categories
+        categories = set()
+        for place in places:
+            for category in place['categories']:
+                categories.add(category)
+
+        return Response(list(categories))
     
     @action(detail=False, methods=['GET'])
     def recommend(self, request):

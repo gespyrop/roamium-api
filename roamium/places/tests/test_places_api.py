@@ -316,3 +316,24 @@ class PlaceApiTest(TestCase):
         self.assertIn(category_1.name, response.data['categories'])
         self.assertIn(category_2.name, response.data['categories'])
     
+    def test_nearby_categories(self):
+        '''Test that all the categories of the places near the given location are collected.'''
+        # Create and authenticate regular user
+        self.authenticateRegularUser()
+
+        # Create test places
+        place1 = create_test_place(location={'latitude': 0.001, 'longitude': 0.001})
+        place2 = create_test_place(location={'latitude': 0.002, 'longitude': 0.002})
+
+        # Add 2 categories
+        category_1 = create_test_category(name='Test 1')
+        category_2 = create_test_category(name='Test 2')
+        place1.categories.add(category_1)
+        place1.categories.add(category_2)
+        place2.categories.add(category_2)
+
+        response = self.client.get(reverse('place-nearby-categories'), data={'latitude':0.0, 'longitude':0.0})
+
+        # Test that both categories were returned in a list
+        self.assertIn(category_1.name, response.data)
+        self.assertIn(category_2.name, response.data)
