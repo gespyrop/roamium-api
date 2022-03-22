@@ -12,7 +12,6 @@ from .services.recommendation import CosineSimilarityRecommendationService
 
 
 class PlaceViewSet(viewsets.ModelViewSet):
-    recommendation_service = CosineSimilarityRecommendationService()
     permission_classes = [permissions.IsAdminUser]
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
@@ -34,7 +33,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
         return longitude, latitude, radius
 
-    def _get_places(self, request) -> list:
+    def _get_places(self, request) -> tuple:
         '''Get places within the given radius from the given set of coordinates.'''
         longitude, latitude, radius = self._parse_parameters(request)
         user_location = Point(longitude, latitude, srid=4326)
@@ -47,12 +46,12 @@ class PlaceViewSet(viewsets.ModelViewSet):
         builder.add_node(name=None, amenity=None)
         osm_places = builder.run_query()
 
-        return PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places
+        return PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places, radius
 
     @action(detail=False, methods=['GET'])
     def nearby(self, request):
         try:
-            places = self._get_places(request)
+            places, radius = self._get_places(request)
         except TypeError:
             return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
         except ValueError:
@@ -67,7 +66,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='nearby/categories')
     def nearby_categories(self, request):
         try:
-            places = self._get_places(request)
+            places, radius = self._get_places(request)
         except TypeError:
             return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
         except ValueError:
@@ -84,14 +83,25 @@ class PlaceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'])
     def recommend(self, request):
         try:
-            places = self._get_places(request)
+            places, radius = self._get_places(request)
         except TypeError:
             return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
         except ValueError:
             return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
 
+        # TODO Validate request.data
+
+        # Calculate wieghts
+        # TODO Dynamic weights
+        categories_weight = 8
+        wheelchair_weight = 2 * int(request.data.get('wheelchair', 0) > 0)
+        distance_weight = 1
+
+        weights = [categories_weight, wheelchair_weight, distance_weight]
+
         # Recommend places
-        recommendations = self.recommendation_service.recommend(places, request.data)
+        recommendation_service = CosineSimilarityRecommendationService(radius=radius, weights=weights)
+        recommendations = recommendation_service.recommend(places, request.data)
 
         return Response(recommendations)
 

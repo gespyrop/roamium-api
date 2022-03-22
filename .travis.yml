@@ -5,11 +5,15 @@ python:
 services:
   - docker
 
-before_script: pip install docker-compose
-
 branches:
   only:
   - master
 
+before_script: docker-compose build
+
 script:
   - docker-compose run --rm api python manage.py test
+
+after_success: 
+  - echo $CR_PAT | docker login ghcr.io -u $DOCKER_USERNAME --password-stdin
+  - docker-compose push

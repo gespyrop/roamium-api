@@ -23,6 +23,10 @@ class CosineSimilarityRecommendationService(RecommendationService):
     '''
     Handles the place recommendation logic using weighted cosine similarity.
     '''
+    
+    def __init__(self, radius, weights):
+        self.radius = radius
+        self.weights = weights
 
     def __preprocess(self, df) -> pd.DataFrame:
         '''Handles place data preprocessing.'''
@@ -65,8 +69,20 @@ class CosineSimilarityRecommendationService(RecommendationService):
         # Category Score
         df['category_similarity'] = self.__calculate_category_similarity(df['categories'], user_features.get('categories', []))
 
-        # TODO Calculate weighted cosine similarity with all features and sort places
-        # Sort places by category similarity
-        df.sort_values(by=['category_similarity'], ascending=[False], inplace=True)
+        wheelchair = user_features.get('wheelchair', 0)
+
+        # Calculate the final feature vector
+        features = df[['id', 'category_similarity', 'wheelchair', 'distance']].copy()
+
+        max_distance = features['distance'].max() - 0.000001
+        features['distance'] = 1 - (features['distance'] / max_distance)
+
+        # Use the feature vector to calculate a score for each place
+        df['score'] = features.apply(lambda vector: 1 - distance.cosine([1.0 , wheelchair, 1.0], [10*vector['category_similarity'], vector['wheelchair'], vector['distance']], self.weights), axis=1)
+
+        # Sort places by score
+        df.sort_values(by=['score'], ascending=[False], inplace=True)
+
+        df['wheelchair'] = df['wheelchair'].map({-1: 'no', 0: None, 1: 'limited', 2: 'yes'})
 
         return json.loads(df.to_json(orient='records'))
