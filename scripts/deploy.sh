@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ROAMIUM_DIRECTORY=/home/george/roamium/
+ROAMIUM_DIRECTORY=/home/george/roamium
 
 scp -i /tmp/deploy_rsa docker-compose.yml george@roamium.software:$ROAMIUM_DIRECTORY
 scp -i /tmp/deploy_rsa env/production.env george@roamium.software:$ROAMIUM_DIRECTORY
