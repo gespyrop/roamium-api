@@ -8,14 +8,14 @@ services:
 branches:
   only:
   - master
-# before_script:
-# - docker-compose build
-# - docker-compose pull db
-# script:
-# - docker-compose run --rm api python manage.py test
-# after_success:
-# - echo $CR_PAT | docker login ghcr.io -u $DOCKER_USERNAME --password-stdin
-# - docker-compose push
+before_script:
+- docker-compose build
+- docker-compose pull db
+script:
+- docker-compose run --rm api python manage.py test
+after_success:
+- echo $CR_PAT | docker login ghcr.io -u $DOCKER_USERNAME --password-stdin
+- docker-compose push
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_7af400808f1b_key -iv $encrypted_7af400808f1b_iv
   -in deploy_rsa.enc -out /tmp/deploy_rsa -d
@@ -26,4 +26,4 @@ deploy:
   provider: script
   skip_cleanup: true
   script: bash scripts/deploy.sh
-# after_script: docker logout ghcr.io
+after_script: docker logout ghcr.io
