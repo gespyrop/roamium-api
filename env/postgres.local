@@ -1,6 +1,0 @@
-# This file is used to define the 
-# local PostgreSQL configuration
-
-POSTGRES_DB=roamium
-POSTGRES_USER=postgres
-POSTGRES_PASS=CnTQtMEcW9qErK
