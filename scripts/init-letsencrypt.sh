@@ -3,8 +3,7 @@
 domains=(roamium.software www.roamium.software)
 rsa_key_size=4096
 data_path="./data/certbot"
-email="giwrgosspyropoulos@gmail.com" # Adding a valid address is strongly recommended
-staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits
+email="giwrgosspyropoulos@gmail.com"
 
 if [ -d "$data_path" ]; then
   echo "Existing data found for $domains. Skipping..."
@@ -56,12 +55,8 @@ case "$email" in
   *) email_arg="--email $email" ;;
 esac
 
-# Enable staging mode if needed
-if [ $staging != "0" ]; then staging_arg="--staging"; fi
-
 docker compose run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
-    $staging_arg \
     $email_arg \
     $domain_args \
     --rsa-key-size $rsa_key_size \
@@ -71,4 +66,4 @@ docker compose run --rm --entrypoint "\
 echo
 
 echo "### Reloading nginx ..."
-docker compose exec nginx nginx -s reload
+docker compose exec -T nginx nginx -s reload
