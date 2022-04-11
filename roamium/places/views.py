@@ -80,7 +80,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
         return Response(list(categories))
     
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['POST'])
     def recommend(self, request):
         try:
             places, radius = self._get_places(request)
