@@ -78,7 +78,7 @@ class CosineSimilarityRecommendationService(RecommendationService):
         features['distance'] = 1 - (features['distance'] / max_distance)
 
         # Use the feature vector to calculate a score for each place
-        df['score'] = features.apply(lambda vector: 1 - distance.cosine([1.0 , wheelchair, 1.0], [10*vector['category_similarity'], vector['wheelchair'], vector['distance']], self.weights), axis=1)
+        df['score'] = features.apply(lambda vector: 1 - distance.cosine([1.0 , wheelchair, 1.0], [10*vector['category_similarity'], vector['wheelchair'], vector['distance']], w=self.weights), axis=1)
 
         # Sort places by score
         df.sort_values(by=['score'], ascending=[False], inplace=True)
