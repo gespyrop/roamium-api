@@ -26,7 +26,7 @@ class Place(models.Model):
     name = models.CharField(max_length=50)
     location = models.PointField()
     time = models.DurationField()
-    wheelchair = models.CharField(choices=WHEELCHAIR_CHOICES, default='no', max_length=7)
+    wheelchair = models.CharField(choices=WHEELCHAIR_CHOICES, blank=True, null=True, max_length=7)
     categories = models.ManyToManyField(Category)
 
     objects = models.Manager()

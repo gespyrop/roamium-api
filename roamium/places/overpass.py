@@ -58,6 +58,7 @@ class QueryBuilder:
             # Get mirrored local place for additional information
             place = PlaceSerializer(
                 Place(id=place_id, name=name, location=location, wheelchair=wheelchair),
+                source='osm'
             ).data
 
             place['distance'] = self.user_location.distance(location) * 100000
