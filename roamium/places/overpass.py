@@ -4,7 +4,7 @@ from django.contrib.gis.geos import Point
 from .serializers import PlaceSerializer
 from .models import Place, OSMPlace
 
-KEYWORD_TAGS = ('amenity', 'shop', 'cuisine', 'alcohol', 'leisure', 'club', 'historic')
+KEYWORD_TAGS = ('amenity', 'shop', 'cuisine', 'alcohol', 'leisure', 'club', 'historic', 'tourism')
 
 EXCLUDED_AMENITIES = (
     'fuel', 'pharmacy', 'driving_school', 'kindergarten', 'veterinary', 'clinic',

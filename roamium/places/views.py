@@ -10,6 +10,8 @@ from .serializers import PlaceSerializer, PlaceDistanceSerializer, CategorySeria
 from .overpass import QueryBuilder
 from .services.recommendation import CosineSimilarityRecommendationService
 
+OSM_PLACE_TAGS = ('amenity', 'historic', 'tourism')
+
 
 class PlaceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
@@ -42,9 +44,18 @@ class PlaceViewSet(viewsets.ModelViewSet):
             distance=Distance('location', user_location)
         ).filter(distance__lt=radius)
 
+        # Instantiate a new QueryBuilder
         builder = QueryBuilder(longitude, latitude, radius=radius)
-        builder.add_node(name=None, amenity=None)
-        osm_places = builder.run_query()
+
+        # Add a node for every OSM tag
+        for tag in OSM_PLACE_TAGS:
+            builder.add_node(name=None, **{tag: None})
+
+        # Run the query to fetch the places
+        try:
+            osm_places = builder.run_query()
+        except ValueError:
+            raise RuntimeError('Overpass rate limit!')
 
         return PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places, radius
 
@@ -56,6 +67,8 @@ class PlaceViewSet(viewsets.ModelViewSet):
             return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
         except ValueError:
             return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
+        except RuntimeError as e:
+            return Response({'message': str(e)}, 400)
 
         # Sort all places by distance
         if len(places) > 0:
@@ -71,6 +84,8 @@ class PlaceViewSet(viewsets.ModelViewSet):
             return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
         except ValueError:
             return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
+        except RuntimeError as e:
+            return Response({'message': str(e)}, 400)
 
         # Use a set to collect all the discrete categories
         categories = set()
@@ -88,6 +103,8 @@ class PlaceViewSet(viewsets.ModelViewSet):
             return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
         except ValueError:
             return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
+        except RuntimeError as e:
+            return Response({'message': str(e)}, 400)
 
         # TODO Validate request.data
 
