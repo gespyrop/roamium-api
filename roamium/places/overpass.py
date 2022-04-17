@@ -81,7 +81,8 @@ class QueryBuilder:
             # Extract categories from tags
             for label in KEYWORD_TAGS:
                 if label in tags:
-                    place['categories'].append(tags[label])
+                    # Multiple values are separated with ';'
+                    place['categories'] += tags[label].split(';')
 
             places.append(place)
 
