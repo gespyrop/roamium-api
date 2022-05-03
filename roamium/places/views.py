@@ -141,11 +141,11 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
         # TODO Handle ORS API exceptions
         directions_service = ORSDirectionsService(ORS_API_KEY)
-        geometry, ditsance, duration = directions_service.get_directions(points, profile=profile)
+        geometry, distance, duration = directions_service.get_directions(points, profile=profile)
 
         return Response({
             'geometry': geometry,
-            'ditsance': ditsance,
+            'distance': distance,
             'duration': duration
         })
 
