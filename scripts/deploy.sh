@@ -12,6 +12,7 @@ ssh -i /tmp/deploy_rsa george@roamium.software "cd $ROAMIUM_DIRECTORY && \
     docker compose pull && \
     export POSTGRES_PASS=$(openssl rand -base64 32) && \
     export SECRET_KEY=$(openssl rand -base64 32) && \
+    export ORS_API_KEY=$ORS_API_KEY && \
     chmod +x init-letsencrypt.sh && \
     ./init-letsencrypt.sh && \
     rm init-letsencrypt.sh && \

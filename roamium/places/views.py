@@ -1,16 +1,21 @@
+
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
 import pandas as pd
+import os
 
 from .models import Place, Category
 from .serializers import PlaceSerializer, PlaceDistanceSerializer, CategorySerializer
 from .overpass import QueryBuilder
 from .services.recommendation import CosineSimilarityRecommendationService
+from .services.directions import ORSDirectionsService
 
 OSM_PLACE_TAGS = ('amenity', 'historic', 'tourism')
+ORS_API_KEY = os.environ.get('ORS_API_KEY')
+
 
 
 class PlaceViewSet(viewsets.ModelViewSet):
@@ -19,7 +24,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
     serializer_class = PlaceSerializer
 
     def get_permissions(self):
-        if self.action in ('list', 'retrieve', 'nearby', 'nearby_categories', 'recommend'):
+        if self.action in ('list', 'retrieve', 'nearby', 'nearby_categories', 'recommend', 'directions'):
             return [permissions.IsAuthenticated()]
 
         return super(PlaceViewSet, self).get_permissions()
@@ -121,6 +126,28 @@ class PlaceViewSet(viewsets.ModelViewSet):
         recommendations = recommendation_service.recommend(places, request.data)
 
         return Response(recommendations)
+    
+    @action(detail=False, methods=['POST'])
+    def directions(self, request):
+
+        if 'points' not in request.data:
+            return Response({'message': '"points" field is required.' }, 400)
+
+        profile = request.data.get('profile', 'foot-walking')
+        points = request.data.get('points')
+
+        if type(points) != list:
+            return Response({'message': '"points" must be a list of coordinates.' }, 400)
+
+        # TODO Handle ORS API exceptions
+        directions_service = ORSDirectionsService(ORS_API_KEY)
+        geometry, ditsance, duration = directions_service.get_directions(points, profile=profile)
+
+        return Response({
+            'geometry': geometry,
+            'ditsance': ditsance,
+            'duration': duration
+        })
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
