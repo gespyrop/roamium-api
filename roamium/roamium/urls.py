@@ -44,6 +44,7 @@ urlpatterns = [
     path('api/', api_root),
     path('api/user/', include('users.urls')),
     path('api/place/', include('places.urls')),
+    path('api/route/', include('routes.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
