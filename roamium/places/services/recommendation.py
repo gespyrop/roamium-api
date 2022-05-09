@@ -6,14 +6,13 @@ import pandas as pd
 import json
 
 
-
 class RecommendationService(ABC):
     '''Handles the place recommendation logic.'''
 
     @abstractmethod
     def recommend(self, places: list, user_features: dict) -> list:
         '''
-        Recommends the most suitable places for a user 
+        Recommends the most suitable places for a user
         based on the provided criteria.
         '''
         pass
@@ -23,7 +22,7 @@ class CosineSimilarityRecommendationService(RecommendationService):
     '''
     Handles the place recommendation logic using weighted cosine similarity.
     '''
-    
+
     def __init__(self, radius, weights):
         self.radius = radius
         self.weights = weights
@@ -35,7 +34,7 @@ class CosineSimilarityRecommendationService(RecommendationService):
         df['wheelchair'] = df['wheelchair'].map({'no': -1, 'limited': 1, 'yes': 2}).fillna(0)
 
         return df
-    
+
     def __calculate_category_similarity(self, place_categories: pd.Series, user_categories: list) -> pd.Series:
         '''
         Calculates the category similarities for a given set of places.

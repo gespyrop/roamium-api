@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'rest_framework',
     'users',
-    'places'
+    'places',
+    'routes'
 ]
 
 MIDDLEWARE = [

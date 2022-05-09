@@ -1,5 +1,4 @@
-
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.gis.geos import Point
@@ -8,7 +7,8 @@ import pandas as pd
 import os
 
 from .models import Place, Category
-from .serializers import PlaceSerializer, PlaceDistanceSerializer, CategorySerializer
+from .serializers import PlaceSerializer, PlaceDistanceSerializer,\
+    CategorySerializer
 from .overpass import QueryBuilder
 from .services.recommendation import CosineSimilarityRecommendationService
 from .services.directions import ORSDirectionsService
@@ -17,14 +17,16 @@ OSM_PLACE_TAGS = ('amenity', 'historic', 'tourism')
 ORS_API_KEY = os.environ.get('ORS_API_KEY')
 
 
-
 class PlaceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
 
     def get_permissions(self):
-        if self.action in ('list', 'retrieve', 'nearby', 'nearby_categories', 'recommend', 'directions'):
+        if self.action in (
+            'list', 'retrieve', 'nearby',
+            'nearby_categories', 'recommend', 'directions'
+        ):
             return [permissions.IsAuthenticated()]
 
         return super(PlaceViewSet, self).get_permissions()
@@ -35,13 +37,16 @@ class PlaceViewSet(viewsets.ModelViewSet):
         longitude = float(request.query_params.get('longitude'))
         latitude = float(request.query_params.get('latitude'))
 
-        # Get radius        
+        # Get radius
         radius = float(request.query_params.get('radius', 1000))
 
         return longitude, latitude, radius
 
     def _get_places(self, request) -> tuple:
-        '''Get places within the given radius from the given set of coordinates.'''
+        '''
+        Get places within the given radius
+        from the given set of coordinates.
+        '''
         longitude, latitude, radius = self._parse_parameters(request)
         user_location = Point(longitude, latitude, srid=4326)
 
@@ -62,35 +67,37 @@ class PlaceViewSet(viewsets.ModelViewSet):
         except ValueError:
             raise RuntimeError('Overpass rate limit!')
 
-        return PlaceDistanceSerializer(places, many=True, context={'request': request}).data + osm_places, radius
+        return PlaceDistanceSerializer(
+            places, many=True, context={'request': request}
+        ).data + osm_places, radius
 
     @action(detail=False, methods=['GET'])
     def nearby(self, request):
         try:
             places, radius = self._get_places(request)
         except TypeError:
-            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
+            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, status.HTTP_400_BAD_REQUEST)
         except ValueError:
-            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
+            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, status.HTTP_400_BAD_REQUEST)
         except RuntimeError as e:
-            return Response({'message': str(e)}, 400)
+            return Response({'message': str(e)}, status.HTTP_400_BAD_REQUEST)
 
         # Sort all places by distance
         if len(places) > 0:
             places = pd.DataFrame(places).sort_values(by='distance').to_dict('records')
 
         return Response(places)
-    
+
     @action(detail=False, methods=['GET'], url_path='nearby/categories')
     def nearby_categories(self, request):
         try:
             places, radius = self._get_places(request)
         except TypeError:
-            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
+            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, status.HTTP_400_BAD_REQUEST)
         except ValueError:
-            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
+            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, status.HTTP_400_BAD_REQUEST)
         except RuntimeError as e:
-            return Response({'message': str(e)}, 400)
+            return Response({'message': str(e)}, status.HTTP_400_BAD_REQUEST)
 
         # Use a set to collect all the discrete categories
         categories = set()
@@ -99,17 +106,17 @@ class PlaceViewSet(viewsets.ModelViewSet):
                 categories.add(category)
 
         return Response(list(categories))
-    
+
     @action(detail=False, methods=['POST'])
     def recommend(self, request):
         try:
             places, radius = self._get_places(request)
         except TypeError:
-            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, 400)
+            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, status.HTTP_400_BAD_REQUEST)
         except ValueError:
-            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, 400)
+            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, status.HTTP_400_BAD_REQUEST)
         except RuntimeError as e:
-            return Response({'message': str(e)}, 400)
+            return Response({'message': str(e)}, status.HTTP_400_BAD_REQUEST)
 
         # TODO Validate request.data
 
@@ -126,18 +133,18 @@ class PlaceViewSet(viewsets.ModelViewSet):
         recommendations = recommendation_service.recommend(places, request.data)
 
         return Response(recommendations)
-    
+
     @action(detail=False, methods=['POST'])
     def directions(self, request):
 
         if 'points' not in request.data:
-            return Response({'message': '"points" field is required.' }, 400)
+            return Response({'message': '"points" field is required.' }, status.HTTP_400_BAD_REQUEST)
 
         profile = request.data.get('profile', 'foot-walking')
         points = request.data.get('points')
 
         if type(points) != list:
-            return Response({'message': '"points" must be a list of coordinates.' }, 400)
+            return Response({'message': '"points" must be a list of coordinates.' }, status.HTTP_400_BAD_REQUEST)
 
         # TODO Handle ORS API exceptions
         directions_service = ORSDirectionsService(ORS_API_KEY)
