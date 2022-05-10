@@ -13,7 +13,7 @@ PLACE_SOURCES = (
 
 
 class Visit(models.Model):
-    place_id = models.IntegerField()
+    place_id = models.BigIntegerField()
     place_source = models.CharField(
         choices=PLACE_SOURCES, max_length=7, blank=False, null=False
     )
