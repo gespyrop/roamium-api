@@ -5,10 +5,13 @@ from rest_framework.test import APIClient
 
 from places.models import Category
 from shared.test_utils import create_test_user, create_test_superuser, \
-    create_test_category , category_payload
+    create_test_category
 import json
 
 CATEGORIES_URL = reverse('category-list')
+
+CONTENT_TYPE = 'application/json'
+UPDATED_NAME = 'New Test Name'
 
 
 class CategoryApiTest(TestCase):
@@ -17,10 +20,10 @@ class CategoryApiTest(TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.payload = {'name': 'TestCategory'}
-    
+
     def setUp(self):
         self.client = APIClient()
-    
+
     def authenticateAdmin(self):
         admin = create_test_superuser()
         self.client.force_authenticate(admin)
@@ -34,7 +37,11 @@ class CategoryApiTest(TestCase):
         # Create and authenticate admin user
         self.authenticateAdmin()
 
-        response = self.client.post(CATEGORIES_URL, json.dumps(self.payload), content_type='application/json')
+        response = self.client.post(
+            CATEGORIES_URL,
+            json.dumps(self.payload),
+            content_type=CONTENT_TYPE
+        )
 
         # Test that the response status code is 201
         self.assertEquals(response.status_code, 201)
@@ -48,7 +55,11 @@ class CategoryApiTest(TestCase):
         # Create and authenticate regular user
         self.authenticateRegularUser()
 
-        response = self.client.post(CATEGORIES_URL, json.dumps(self.payload), content_type='application/json')
+        response = self.client.post(
+            CATEGORIES_URL,
+            json.dumps(self.payload),
+            content_type=CONTENT_TYPE
+        )
 
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
@@ -59,7 +70,11 @@ class CategoryApiTest(TestCase):
 
     def test_create_category_unauthenticated_user(self):
         '''Test that admin users can not create categories'''
-        response = self.client.post(CATEGORIES_URL, json.dumps(self.payload), content_type='application/json')
+        response = self.client.post(
+            CATEGORIES_URL,
+            json.dumps(self.payload),
+            content_type=CONTENT_TYPE
+        )
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
@@ -80,7 +95,7 @@ class CategoryApiTest(TestCase):
 
         # Test that 3 categories were returned
         self.assertEquals(len(response.data), 3)
-    
+
     def test_list_categories_unauthenticated_user(self):
         '''Test that unauthenticated users can not list categories'''
         # Create 3 categories
@@ -91,7 +106,7 @@ class CategoryApiTest(TestCase):
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
-    
+
     def test_retrieve_category_authenticated_user(self):
         '''Test that authenticated users can retrieve categories'''
         # Create and authenticate regular user
@@ -100,7 +115,9 @@ class CategoryApiTest(TestCase):
         # Create a category
         category = create_test_category()
 
-        response = self.client.get(reverse('category-detail', args=(category.id,)))
+        response = self.client.get(
+            reverse('category-detail', args=(category.id,))
+        )
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -113,7 +130,9 @@ class CategoryApiTest(TestCase):
         # Create a category
         category = create_test_category()
 
-        response = self.client.get(reverse('category-detail', args=(category.id,)))
+        response = self.client.get(
+            reverse('category-detail', args=(category.id,))
+        )
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
@@ -127,9 +146,13 @@ class CategoryApiTest(TestCase):
         self.authenticateAdmin()
 
         payload = self.payload.copy()
-        payload['name'] = 'New Test Name'
+        payload['name'] = UPDATED_NAME
 
-        response = self.client.put(reverse('category-detail', args=(category.id,)), json.dumps(payload), content_type='application/json')
+        response = self.client.put(
+            reverse('category-detail', args=(category.id,)),
+            json.dumps(payload),
+            content_type=CONTENT_TYPE
+        )
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -147,9 +170,13 @@ class CategoryApiTest(TestCase):
         self.authenticateRegularUser()
 
         payload = self.payload.copy()
-        payload['name'] = 'New Test Name'
+        payload['name'] = UPDATED_NAME
 
-        response = self.client.put(reverse('category-detail', args=(category.id,)), json.dumps(payload), content_type='application/json')
+        response = self.client.put(
+            reverse('category-detail', args=(category.id,)),
+            json.dumps(payload),
+            content_type=CONTENT_TYPE
+        )
 
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
@@ -164,9 +191,13 @@ class CategoryApiTest(TestCase):
         category = create_test_category()
 
         payload = self.payload.copy()
-        payload['name'] = 'New Test Name'
+        payload['name'] = UPDATED_NAME
 
-        response = self.client.put(reverse('category-detail', args=(category.id,)), json.dumps(payload), content_type='application/json')
+        response = self.client.put(
+            reverse('category-detail', args=(category.id,)),
+            json.dumps(payload),
+            content_type=CONTENT_TYPE
+        )
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
@@ -179,7 +210,11 @@ class CategoryApiTest(TestCase):
         # Create and authenticate admin user
         self.authenticateAdmin()
 
-        response = self.client.patch(reverse('category-detail', args=(category.id,)), json.dumps({'name': 'NewName'}), content_type='application/json')
+        response = self.client.patch(
+            reverse('category-detail', args=(category.id,)),
+            json.dumps({'name': 'NewName'}),
+            content_type=CONTENT_TYPE
+        )
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
@@ -190,13 +225,17 @@ class CategoryApiTest(TestCase):
 
     def test_partial_update_category_regular_user(self):
         '''Test that admin users can not partially update categories'''
-        # Create a category 
+        # Create a category
         category = create_test_category()
 
         # Create and authenticate regular user
         self.authenticateRegularUser()
 
-        response = self.client.patch(reverse('category-detail', args=(category.id,)), {'name': 'NewName'}, content_type='application/json')
+        response = self.client.patch(
+            reverse('category-detail', args=(category.id,)),
+            {'name': 'NewName'},
+            content_type=CONTENT_TYPE
+        )
 
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
@@ -210,7 +249,11 @@ class CategoryApiTest(TestCase):
         # Create a test category
         category = create_test_category()
 
-        response = self.client.patch(reverse('category-detail', args=(category.id,)), {'name': 'NewName'}, content_type='application/json')
+        response = self.client.patch(
+            reverse('category-detail', args=(category.id,)),
+            {'name': 'NewName'},
+            content_type=CONTENT_TYPE
+        )
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
@@ -223,7 +266,9 @@ class CategoryApiTest(TestCase):
         # Create and authenticate admin user
         self.authenticateAdmin()
 
-        response = self.client.delete(reverse('category-detail', args=(category.id,)))
+        response = self.client.delete(
+            reverse('category-detail', args=(category.id,))
+        )
 
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 204)
@@ -236,7 +281,9 @@ class CategoryApiTest(TestCase):
         # Create and authenticate regular user
         self.authenticateRegularUser()
 
-        response = self.client.delete(reverse('category-detail', args=(category.id,)))
+        response = self.client.delete(
+            reverse('category-detail', args=(category.id,))
+        )
 
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
@@ -246,7 +293,9 @@ class CategoryApiTest(TestCase):
         # Create a test category
         category = create_test_category()
 
-        response = self.client.delete(reverse('category-detail', args=(category.id,)))
+        response = self.client.delete(
+            reverse('category-detail', args=(category.id,))
+        )
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)

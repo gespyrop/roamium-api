@@ -20,3 +20,6 @@ class Visit(models.Model):
     name = models.CharField(max_length=50)
     timestamp = models.DateTimeField(auto_now_add=True)
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f'{self.name} {self.timestamp}'

@@ -11,13 +11,16 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class PlaceSerializer(serializers.ModelSerializer):
     source = serializers.SerializerMethodField()
-    categories = serializers.ListSerializer(read_only=True, child=serializers.CharField())
     location = PointField()
+    categories = serializers.ListSerializer(
+        read_only=True,
+        child=serializers.CharField()
+    )
 
     def __init__(self, *args, **kwargs):
         self.place_source = kwargs.pop('source', 'roamium')
         super().__init__(*args, **kwargs)
-    
+
     def get_source(self, obj):
         return self.place_source
 
@@ -26,17 +29,19 @@ class PlaceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class PlaceDistanceSerializer(serializers.ModelSerializer):
     source = serializers.SerializerMethodField()
-    categories = serializers.ListSerializer(read_only=True, child=serializers.CharField())
     distance = serializers.SerializerMethodField()
     location = PointField()
+    categories = serializers.ListSerializer(
+        read_only=True,
+        child=serializers.CharField()
+    )
 
-    def __init__(self, *args, **kwargs): 
+    def __init__(self, *args, **kwargs):
         self.place_source = kwargs.pop('source', 'roamium')
         super().__init__(*args, **kwargs)
-    
+
     def get_source(self, obj):
         return self.place_source
 

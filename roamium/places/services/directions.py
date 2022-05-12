@@ -16,13 +16,18 @@ class DirectionsService(ABC):
 
 
 class ORSDirectionsService(DirectionsService):
-    '''Handles direction provision by calling the [Open Route Service](https://openrouteservice.org/).'''
+    '''
+    Handles direction provision by calling
+    the [Open Route Service](https://openrouteservice.org/).
+    '''
 
     def __init__(self, api_key):
         self.api_key = api_key
         self.base_url = 'https://api.openrouteservice.org/v2'
-    
-    def get_directions(self, points: list, profile: str = 'foot-walking') -> tuple:
+
+    def get_directions(
+        self, points: list, profile: str = 'foot-walking'
+    ) -> tuple:
         '''
         Provides a directions and summary information for the
         best route that passes through the provided set of points.
@@ -40,8 +45,11 @@ class ORSDirectionsService(DirectionsService):
             'Content-Type': 'application/json'
         }
 
-        response = requests.post(f'{self.base_url}{endpoint}', data=payload, headers=headers)
+        response = requests.post(
+            f'{self.base_url}{endpoint}', data=payload, headers=headers
+        )
 
         route = response.json()['routes'][0]
 
-        return route['geometry'], route['summary']['distance'], route['summary']['duration']
+        return route['geometry'], route['summary']['distance'],\
+            route['summary']['duration']

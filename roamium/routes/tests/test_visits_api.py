@@ -11,6 +11,8 @@ import json
 
 VISITS_URL = reverse('visit-list')
 
+CONTENT_TYPE = 'application/json'
+
 
 class VisitApiTest(TestCase):
     '''Tests for the Visit endpoints'''
@@ -27,7 +29,7 @@ class VisitApiTest(TestCase):
         payload = create_visit_payload(place, route)
 
         response = self.client.post(
-            VISITS_URL, json.dumps(payload), content_type='application/json'
+            VISITS_URL, json.dumps(payload), content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 201
@@ -47,7 +49,7 @@ class VisitApiTest(TestCase):
         payload = create_visit_payload(place, route)
 
         response = self.client.post(
-            VISITS_URL, json.dumps(payload), content_type='application/json'
+            VISITS_URL, json.dumps(payload), content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 401
@@ -71,7 +73,7 @@ class VisitApiTest(TestCase):
         payload = create_visit_payload(place, route)
 
         response = self.client.post(
-            VISITS_URL, json.dumps(payload), content_type='application/json'
+            VISITS_URL, json.dumps(payload), content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 403

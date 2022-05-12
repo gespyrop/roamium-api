@@ -31,11 +31,15 @@ class CosineSimilarityRecommendationService(RecommendationService):
         '''Handles place data preprocessing.'''
 
         # Map wheelchair values to numbers
-        df['wheelchair'] = df['wheelchair'].map({'no': -1, 'limited': 1, 'yes': 2}).fillna(0)
+        df['wheelchair'] = df['wheelchair'].map(
+            {'no': -1, 'limited': 1, 'yes': 2}
+        ).fillna(0)
 
         return df
 
-    def __calculate_category_similarity(self, place_categories: pd.Series, user_categories: list) -> pd.Series:
+    def __calculate_category_similarity(
+        self, place_categories: pd.Series, user_categories: list
+    ) -> pd.Series:
         '''
         Calculates the category similarities for a given set of places.
 
@@ -52,36 +56,53 @@ class CosineSimilarityRecommendationService(RecommendationService):
 
         # Calculate the user category feature vectors
         user_feature_vector = pd.DataFrame(columns=categories)
-        user_feature_vector.loc[0] = [int(category in user_categories) for category in categories]
+        user_feature_vector.loc[0] = [
+            int(category in user_categories) for category in categories
+        ]
 
-        # Return the cosine similarity between the user's category feature vector
-        # and each of the place feature vectors.
-        return place_feature_vectors.apply(lambda vector : 1 - distance.cosine(vector, user_feature_vector), axis=1)
+        # Return the cosine similarity between the user's
+        # category feature vector and each of the place feature vectors.
+        return place_feature_vectors.apply(
+            lambda vector: 1 - distance.cosine(vector, user_feature_vector),
+            axis=1
+        )
 
     def recommend(self, places: list, user_features: dict) -> list:
         '''
-        Recommends the most suitable places for a user 
+        Recommends the most suitable places for a user
         based on the provided criteria.
         '''
         df = self.__preprocess(pd.DataFrame(places))
 
         # Category Score
-        df['category_similarity'] = self.__calculate_category_similarity(df['categories'], user_features.get('categories', []))
+        df['category_similarity'] = self.__calculate_category_similarity(
+            df['categories'], user_features.get('categories', [])
+        )
 
         wheelchair = user_features.get('wheelchair', 0)
 
         # Calculate the final feature vector
-        features = df[['id', 'category_similarity', 'wheelchair', 'distance']].copy()
+        features = df[
+            ['id', 'category_similarity', 'wheelchair', 'distance']
+        ].copy()
 
         max_distance = features['distance'].max() - 0.000001
         features['distance'] = 1 - (features['distance'] / max_distance)
 
         # Use the feature vector to calculate a score for each place
-        df['score'] = features.apply(lambda vector: 1 - distance.cosine([1.0 , wheelchair, 1.0], [10*vector['category_similarity'], vector['wheelchair'], vector['distance']], w=self.weights), axis=1)
+        df['score'] = features.apply(
+            lambda v: 1 - distance.cosine(
+                [1.0, wheelchair, 1.0],
+                [10*v['category_similarity'], v['wheelchair'], v['distance']],
+                w=self.weights
+            ), axis=1
+        )
 
         # Sort places by score
         df.sort_values(by=['score'], ascending=[False], inplace=True)
 
-        df['wheelchair'] = df['wheelchair'].map({-1: 'no', 0: None, 1: 'limited', 2: 'yes'})
+        df['wheelchair'] = df['wheelchair'].map(
+            {-1: 'no', 0: None, 1: 'limited', 2: 'yes'}
+        )
 
         return json.loads(df.to_json(orient='records'))

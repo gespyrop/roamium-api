@@ -16,6 +16,9 @@ from .services.directions import ORSDirectionsService
 OSM_PLACE_TAGS = ('amenity', 'historic', 'tourism')
 ORS_API_KEY = os.environ.get('ORS_API_KEY')
 
+LON_LAT_REQUIRED = "Float parameters 'longitude' and 'latitude' are required."
+LON_LAT_FLOAT = "Parameters 'longitude' and 'latitude' must be 'float'."
+
 
 class PlaceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
@@ -76,15 +79,22 @@ class PlaceViewSet(viewsets.ModelViewSet):
         try:
             places, radius = self._get_places(request)
         except TypeError:
-            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'message': LON_LAT_REQUIRED},
+                status.HTTP_400_BAD_REQUEST
+            )
         except ValueError:
-            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'message': LON_LAT_FLOAT},
+                status.HTTP_400_BAD_REQUEST
+            )
         except RuntimeError as e:
             return Response({'message': str(e)}, status.HTTP_400_BAD_REQUEST)
 
         # Sort all places by distance
         if len(places) > 0:
-            places = pd.DataFrame(places).sort_values(by='distance').to_dict('records')
+            places = pd.DataFrame(places)\
+                .sort_values(by='distance').to_dict('records')
 
         return Response(places)
 
@@ -93,9 +103,15 @@ class PlaceViewSet(viewsets.ModelViewSet):
         try:
             places, radius = self._get_places(request)
         except TypeError:
-            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'message': LON_LAT_REQUIRED},
+                status.HTTP_400_BAD_REQUEST
+            )
         except ValueError:
-            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'message': LON_LAT_FLOAT},
+                status.HTTP_400_BAD_REQUEST
+            )
         except RuntimeError as e:
             return Response({'message': str(e)}, status.HTTP_400_BAD_REQUEST)
 
@@ -112,9 +128,15 @@ class PlaceViewSet(viewsets.ModelViewSet):
         try:
             places, radius = self._get_places(request)
         except TypeError:
-            return Response({'message': "Float parameters 'longitude' and 'latitude' are required."}, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'message': LON_LAT_REQUIRED},
+                status.HTTP_400_BAD_REQUEST
+            )
         except ValueError:
-            return Response({'message': "Parameters 'longitude' and 'latitude' must be of type 'float'."}, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'message': LON_LAT_FLOAT},
+                status.HTTP_400_BAD_REQUEST
+            )
         except RuntimeError as e:
             return Response({'message': str(e)}, status.HTTP_400_BAD_REQUEST)
 
@@ -129,8 +151,15 @@ class PlaceViewSet(viewsets.ModelViewSet):
         weights = [categories_weight, wheelchair_weight, distance_weight]
 
         # Recommend places
-        recommendation_service = CosineSimilarityRecommendationService(radius=radius, weights=weights)
-        recommendations = recommendation_service.recommend(places, request.data)
+        recommendation_service = CosineSimilarityRecommendationService(
+            radius=radius,
+            weights=weights
+        )
+
+        recommendations = recommendation_service.recommend(
+            places,
+            request.data
+        )
 
         return Response(recommendations)
 
@@ -138,17 +167,26 @@ class PlaceViewSet(viewsets.ModelViewSet):
     def directions(self, request):
 
         if 'points' not in request.data:
-            return Response({'message': '"points" field is required.' }, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'message': '"points" field is required.'},
+                status.HTTP_400_BAD_REQUEST
+            )
 
         profile = request.data.get('profile', 'foot-walking')
         points = request.data.get('points')
 
         if type(points) != list:
-            return Response({'message': '"points" must be a list of coordinates.' }, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'message': '"points" must be a list of coordinates.'},
+                status.HTTP_400_BAD_REQUEST
+            )
 
         # TODO Handle ORS API exceptions
         directions_service = ORSDirectionsService(ORS_API_KEY)
-        geometry, distance, duration = directions_service.get_directions(points, profile=profile)
+        geometry, distance, duration = directions_service.get_directions(
+            points,
+            profile=profile
+        )
 
         return Response({
             'geometry': geometry,

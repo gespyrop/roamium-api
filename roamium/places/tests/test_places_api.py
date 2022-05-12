@@ -11,6 +11,9 @@ import json
 
 PLACES_URL = reverse('place-list')
 
+CONTENT_TYPE = 'application/json'
+UPDATED_NAME = 'New Test Name'
+
 
 class PlaceApiTest(TestCase):
     '''Tests for the Place endpoints'''
@@ -37,7 +40,7 @@ class PlaceApiTest(TestCase):
 
         response = self.client.post(
             PLACES_URL, json.dumps(self.payload),
-            content_type='application/json'
+            content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 201
@@ -54,7 +57,7 @@ class PlaceApiTest(TestCase):
 
         response = self.client.post(
             PLACES_URL, json.dumps(self.payload),
-            content_type='application/json'
+            content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 403
@@ -68,7 +71,7 @@ class PlaceApiTest(TestCase):
         '''Test that unauthenticated users can not create places'''
         response = self.client.post(
             PLACES_URL, json.dumps(self.payload),
-            content_type='application/json'
+            content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 401
@@ -137,12 +140,12 @@ class PlaceApiTest(TestCase):
         self.authenticateAdmin()
 
         payload = self.payload.copy()
-        payload['name'] = 'New Test Name'
+        payload['name'] = UPDATED_NAME
 
         response = self.client.put(
             reverse('place-detail', args=(place.id,)),
             json.dumps(payload),
-            content_type='application/json'
+            content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 200
@@ -161,12 +164,12 @@ class PlaceApiTest(TestCase):
         self.authenticateRegularUser()
 
         payload = self.payload.copy()
-        payload['name'] = 'New Test Name'
+        payload['name'] = UPDATED_NAME
 
         response = self.client.put(
             reverse('place-detail', args=(place.id,)),
             json.dumps(payload),
-            content_type='application/json'
+            content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 403
@@ -182,12 +185,12 @@ class PlaceApiTest(TestCase):
         place = create_test_place()
 
         payload = self.payload.copy()
-        payload['name'] = 'New Test Name'
+        payload['name'] = UPDATED_NAME
 
         response = self.client.put(
             reverse('place-detail', args=(place.id,)),
             json.dumps(payload),
-            content_type='application/json'
+            content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 401
@@ -204,7 +207,7 @@ class PlaceApiTest(TestCase):
         response = self.client.patch(
             reverse('place-detail', args=(place.id,)),
             json.dumps({'name': 'NewName'}),
-            content_type='application/json'
+            content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 200
@@ -225,7 +228,7 @@ class PlaceApiTest(TestCase):
         response = self.client.patch(
             reverse('place-detail', args=(place.id,)),
             {'name': 'NewName'},
-            content_type='application/json'
+            content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 403
@@ -243,7 +246,7 @@ class PlaceApiTest(TestCase):
         response = self.client.patch(
             reverse('place-detail', args=(place.id,)),
             {'name': 'NewName'},
-            content_type='application/json'
+            content_type=CONTENT_TYPE
         )
 
         # Test that the response status code is 401
