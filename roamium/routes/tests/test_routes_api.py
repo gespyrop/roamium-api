@@ -43,12 +43,17 @@ class RouteApiTest(TestCase):
 
     def test_list_routes(self):
         '''Test that users can list their routes only'''
-        # Create a route
+        # Create two routes
         route = create_test_route(self.user)
+        create_test_route(self.user)
 
         # Create a visit
         place = create_test_place()
         visit = create_test_visit(place, route)
+
+        # Complete the first route
+        route.finished = True
+        route.save()
 
         # Create route for different user
         different_user = create_test_user(
@@ -62,7 +67,7 @@ class RouteApiTest(TestCase):
         # Test that the response status code is 200
         self.assertEquals(response.status_code, 200)
 
-        # Test that the user listed only their routes
+        # Test that the user listed only their completed routes
         self.assertEquals(len(response.data), 1)
 
         # Test that the visits were returned in the response body
@@ -180,6 +185,12 @@ class RouteApiTest(TestCase):
         # Create a route
         route = create_test_route(self.user)
 
+        # Create a test place
+        place = create_test_place()
+
+        # Add a visit to the route
+        create_test_visit(place, route)
+
         response = self.client.post(
             reverse('route-complete', args=(route.id,))
         )
@@ -224,3 +235,19 @@ class RouteApiTest(TestCase):
 
         # Test that the response status code is 404
         self.assertEquals(response.status_code, 404)
+
+    def test_complete_empty_route(self):
+        '''Test that empty routes get deleted upon completion'''
+        # Create a route
+        route = create_test_route(self.user)
+
+        response = self.client.post(
+            reverse('route-complete', args=(route.id,))
+        )
+
+        # Test that the response status code is 204
+        self.assertEquals(response.status_code, 204)
+
+        # Test that the route was deleted
+        self.assertTrue(response.data['message'] == 'Deleted empty route.')
+        self.assertFalse(Route.objects.filter(pk=route.id).exists())

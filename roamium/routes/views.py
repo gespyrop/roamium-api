@@ -23,10 +23,25 @@ class RouteViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def list(self, request, *args, **kwargs):
+        # List only finished routes
+        self.queryset = self.queryset.filter(finished=True)
+        return super().list(request, *args, **kwargs)
+
     @action(detail=True, methods=['POST'])
     def complete(self, request, pk=None):
         '''Complete a route'''
         route = self.get_object()
+
+        # Delete empty routes
+        if route.visit_set.count() == 0:
+            route.delete()
+            return Response(
+                {'message': 'Deleted empty route.'},
+                status=status.HTTP_204_NO_CONTENT
+            )
+
+        # Complete non-empty routes
         route.finished = True
         route.save()
 
