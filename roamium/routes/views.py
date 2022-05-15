@@ -3,7 +3,7 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Route, Visit, Review
+from .models import PLACE_SOURCES, Route, Visit, Review
 from .serializers import RouteSerializer, VisitSerializer, ReviewSerializer
 from .permissions import IsRouteOwner, IsVisitOwner
 
@@ -64,6 +64,9 @@ class VisitViewSet(mixins.CreateModelMixin,
         return self.queryset.filter(route__user=self.request.user)
 
 
+ACCEPTED_PLACE_SOURCES = list(map(lambda source: source[0], PLACE_SOURCES))
+
+
 class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, IsVisitOwner)
     queryset = Review.objects.all()
@@ -73,3 +76,46 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return self.queryset.filter(visit__route__user=self.request.user)
         return self.queryset
+
+    @action(detail=False, methods=['GET'])
+    def place(self, request):
+        # Get the place source form query parameters
+        source = str(request.query_params.get('source'))
+
+        # Validate source
+        if not source:
+            return Response(
+                {'message': "String parameter 'source' is required."},
+                status.HTTP_400_BAD_REQUEST
+            )
+
+        if source not in ACCEPTED_PLACE_SOURCES:
+            joined_values = ','.join(ACCEPTED_PLACE_SOURCES)
+            message = f"'{source}' is not in ({joined_values})."
+
+            return Response(
+                {'message': message},
+                status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get the place id from query parameters
+        try:
+            place_id = int(request.query_params.get('place_id'))
+        except ValueError:
+            return Response(
+                {'message': "Parameter 'place_id' must be an integer."},
+                status.HTTP_400_BAD_REQUEST
+            )
+        except TypeError:
+            return Response(
+                {'message': "Parameter 'place_id' is required."},
+                status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get the place's reviews
+        reviews = Review.objects.filter(
+            visit__place_source=source,
+            visit__place_id=place_id
+        )
+
+        return Response(ReviewSerializer(reviews, many=True).data)

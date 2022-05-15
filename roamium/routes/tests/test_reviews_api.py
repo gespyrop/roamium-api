@@ -322,3 +322,89 @@ class ReviewApiTest(TestCase):
 
         # Test that the response status code is 403
         self.assertEquals(response.status_code, 403)
+
+    def test_get_place_reviews(self):
+        '''Test that users can get reviews for a place'''
+        review = create_test_review(self.visit)
+
+        place_id = self.visit.place_id
+
+        response = self.client.get(
+            f'{REVIEWS_URL}place/?source=roamium&place_id={place_id}'
+        )
+
+        # Test that the response status code is 200
+        self.assertEquals(response.status_code, 200)
+
+        # Test that the review was returned
+        self.assertEquals(len(response.data), 1)
+        self.assertEquals(response.data[0]['id'], review.id)
+
+    def test_get_place_reviews_no_source(self):
+        '''Test that the source parameter is required for place reviews.'''
+        response = self.client.get(
+            f'{REVIEWS_URL}place/'
+        )
+
+        # Test that the response status code is 400
+        self.assertEquals(response.status_code, 400)
+
+    def test_get_place_reviews_invalid_source(self):
+        '''
+        Test that invalid source parameters are not accepted for place reviews.
+        '''
+        response = self.client.get(
+            f'{REVIEWS_URL}place/?source=test'
+        )
+
+        # Test that the response status code is 400
+        self.assertEquals(response.status_code, 400)
+
+        # Test that an error message was returned
+        self.assertEquals(
+            response.data['message'], "'test' is not in (roamium,osm)."
+        )
+
+    def test_get_place_reviews_no_place_id(self):
+        '''Test that the place_id parameter is required for place reviews.'''
+        response = self.client.get(
+            f'{REVIEWS_URL}place/?source=roamium'
+        )
+
+        # Test that the response status code is 400
+        self.assertEquals(response.status_code, 400)
+
+        # Test that an error message was returned
+        self.assertEquals(
+            response.data['message'], "Parameter 'place_id' is required."
+        )
+
+    def test_get_place_reviews_invalid_place_id(self):
+        '''Test that the place_id parameter must be an integer.'''
+        response = self.client.get(
+            f'{REVIEWS_URL}place/?source=roamium&place_id=test'
+        )
+
+        # Test that the response status code is 400
+        self.assertEquals(response.status_code, 400)
+
+        # Test that an error message was returned
+        self.assertEquals(
+            response.data['message'],
+            "Parameter 'place_id' must be an integer."
+        )
+
+    def test_get_place_reviews_unauthenticated_user(self):
+        '''Test that unauthenticated users can not get reviews for a place'''
+        # Log the user out
+        self.client.logout()
+
+        create_test_review(self.visit)
+        place_id = self.visit.place_id
+
+        response = self.client.get(
+            f'{REVIEWS_URL}place/?source=roamium&place_id={place_id}'
+        )
+
+        # Test that the response status code is 401
+        self.assertEquals(response.status_code, 401)
