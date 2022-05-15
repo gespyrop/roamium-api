@@ -131,7 +131,7 @@ class ReviewApiTest(TestCase):
         self.assertAlmostEquals(response.status_code, 200)
 
         # Test that the reviews was returned
-        self.assertEquals(response.data['id'], self.visit.id)
+        self.assertEquals(response.data['id'], review.id)
 
     def test_retrieve_review_unauthenticated_user(self):
         '''Test that unauthenticated users can not retrieve reviews'''
