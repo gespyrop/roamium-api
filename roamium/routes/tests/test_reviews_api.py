@@ -408,3 +408,28 @@ class ReviewApiTest(TestCase):
 
         # Test that the response status code is 401
         self.assertEquals(response.status_code, 401)
+
+    def test_places_average_rating(self):
+        '''Test that the average rating is returned in the places payload.'''
+        # Create a route
+        route = create_test_route(self.user)
+
+        # Create two visits
+        place = create_test_place()
+
+        visit = create_test_visit(place, route)
+        create_test_review(visit)
+
+        visit = create_test_visit(place, route)
+        review = create_test_review(visit)
+
+        # Change second review's stars to 4
+        review.stars = 4
+        review.save()
+
+        response = self.client.get(
+            reverse('place-detail', args=(visit.place_id,))
+        )
+
+        # Test that the average rating of the place was included
+        self.assertEquals(response.data['rating'], 3.5)

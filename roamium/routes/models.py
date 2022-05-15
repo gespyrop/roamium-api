@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Route(models.Model):
@@ -27,5 +28,7 @@ class Visit(models.Model):
 
 class Review(models.Model):
     visit = models.OneToOneField(Visit, on_delete=models.CASCADE)
-    stars = models.IntegerField()
     text = models.TextField()
+    stars = models.IntegerField(
+        validators=(MinValueValidator(1), MaxValueValidator(5))
+    )
