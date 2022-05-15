@@ -3,9 +3,9 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Route, Visit
-from .serializers import RouteSerializer, VisitSerializer
-from .permissions import IsRouteOwner
+from .models import Route, Visit, Review
+from .serializers import RouteSerializer, VisitSerializer, ReviewSerializer
+from .permissions import IsRouteOwner, IsVisitOwner
 
 
 class RouteViewSet(mixins.CreateModelMixin,
@@ -62,3 +62,14 @@ class VisitViewSet(mixins.CreateModelMixin,
 
     def get_queryset(self):
         return self.queryset.filter(route__user=self.request.user)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated, IsVisitOwner)
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return self.queryset.filter(visit__route__user=self.request.user)
+        return self.queryset

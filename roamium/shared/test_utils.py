@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 
 from places.serializers import PlaceSerializer, CategorySerializer
-from routes.serializers import VisitSerializer
+from routes.serializers import ReviewSerializer, VisitSerializer
 from routes.models import Route
 
 
@@ -64,13 +64,29 @@ def create_visit_payload(place, route):
     }
 
 
+def create_review_payload(visit):
+    return {
+        'visit': visit.id,
+        'stars': 3,
+        'text': 'Review text'
+    }
+
+
 def create_test_route(user):
     return Route.objects.create(user=user)
 
 
 def create_test_visit(place, route):
-    '''Create a test visit based on the given payload'''
+    '''Create a test visit for the given place and route'''
     payload = create_visit_payload(place, route)
     serializer = VisitSerializer(data=payload)
+    serializer.is_valid()
+    return serializer.save()
+
+
+def create_test_review(visit):
+    '''Create a test review for the given visit'''
+    payload = create_review_payload(visit)
+    serializer = ReviewSerializer(data=payload)
     serializer.is_valid()
     return serializer.save()

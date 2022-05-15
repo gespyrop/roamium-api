@@ -23,3 +23,9 @@ class Visit(models.Model):
 
     def __str__(self) -> str:
         return f'{self.name} {self.timestamp}'
+
+
+class Review(models.Model):
+    visit = models.OneToOneField(Visit, on_delete=models.CASCADE)
+    stars = models.IntegerField()
+    text = models.TextField()

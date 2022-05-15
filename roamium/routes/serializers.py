@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Route, Visit
+from .models import Route, Visit, Review
 
 
 class VisitSerializer(serializers.ModelSerializer):
@@ -20,3 +20,9 @@ class RouteSerializer(serializers.ModelSerializer):
         return VisitSerializer(
             obj.visit_set.all(), many=True, read_only=True
         ).data
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
