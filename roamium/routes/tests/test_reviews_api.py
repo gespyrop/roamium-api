@@ -433,3 +433,29 @@ class ReviewApiTest(TestCase):
 
         # Test that the average rating of the place was included
         self.assertEquals(response.data['rating'], 3.5)
+
+    def test_get_visit_review(self):
+        '''Test that users can get a review for a specific visit'''
+        review = create_test_review(self.visit)
+
+        response = self.client.get(
+            reverse('visit-detail', args=(self.visit.id,)) + 'review/'
+        )
+
+        # Test that the response status code is 200
+        self.assertEquals(response.status_code, 200)
+
+        # Test that the correct review was returned
+        self.assertEquals(response.data['id'], review.id)
+
+    def test_get_visit_review_not_exists(self):
+        '''Test that visits without a review return a 404 error.'''
+        response = self.client.get(
+            reverse('visit-detail', args=(self.visit.id,)) + 'review/'
+        )
+
+        # Test that the response status code is 404
+        self.assertEquals(response.status_code, 404)
+
+        # Test that an error message was returned
+        self.assertEquals(response.data['detail'], 'Review not found.')

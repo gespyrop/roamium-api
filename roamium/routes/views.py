@@ -63,6 +63,16 @@ class VisitViewSet(mixins.CreateModelMixin,
     def get_queryset(self):
         return self.queryset.filter(route__user=self.request.user)
 
+    @action(detail=True, methods=['GET'])
+    def review(self, request, pk=None):
+        try:
+            return Response(ReviewSerializer(self.get_object().review).data)
+        except Review.DoesNotExist:
+            return Response(
+                {'detail': 'Review not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
 
 ACCEPTED_PLACE_SOURCES = list(map(lambda source: source[0], PLACE_SOURCES))
 
