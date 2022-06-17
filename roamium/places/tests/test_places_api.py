@@ -347,7 +347,7 @@ class PlaceApiTest(TestCase):
 
         # Test that an error message is returned
         self.assertEquals(
-            response.data.get('message'),
+            response.data.get('detail'),
             "Float parameters 'longitude' and 'latitude' are required."
         )
 

@@ -13,7 +13,7 @@ from .overpass import QueryBuilder
 from .services.recommendation import CosineSimilarityRecommendationService
 from .services.directions import ORSDirectionsService
 
-OSM_PLACE_TAGS = ('amenity', 'historic', 'tourism')
+OSM_PLACE_TAGS = ('amenity', 'historic', 'tourism', 'shop')
 ORS_API_KEY = os.environ.get('ORS_API_KEY')
 
 LON_LAT_REQUIRED = "Float parameters 'longitude' and 'latitude' are required."
@@ -80,16 +80,16 @@ class PlaceViewSet(viewsets.ModelViewSet):
             places, radius = self._get_places(request)
         except TypeError:
             return Response(
-                {'message': LON_LAT_REQUIRED},
+                {'detail': LON_LAT_REQUIRED},
                 status.HTTP_400_BAD_REQUEST
             )
         except ValueError:
             return Response(
-                {'message': LON_LAT_FLOAT},
+                {'detail': LON_LAT_FLOAT},
                 status.HTTP_400_BAD_REQUEST
             )
         except RuntimeError as e:
-            return Response({'message': str(e)}, status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': str(e)}, status.HTTP_400_BAD_REQUEST)
 
         # Sort all places by distance
         if len(places) > 0:
@@ -104,16 +104,16 @@ class PlaceViewSet(viewsets.ModelViewSet):
             places, radius = self._get_places(request)
         except TypeError:
             return Response(
-                {'message': LON_LAT_REQUIRED},
+                {'detail': LON_LAT_REQUIRED},
                 status.HTTP_400_BAD_REQUEST
             )
         except ValueError:
             return Response(
-                {'message': LON_LAT_FLOAT},
+                {'detail': LON_LAT_FLOAT},
                 status.HTTP_400_BAD_REQUEST
             )
         except RuntimeError as e:
-            return Response({'message': str(e)}, status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': str(e)}, status.HTTP_400_BAD_REQUEST)
 
         # Use a set to collect all the discrete categories
         categories = set()
@@ -129,26 +129,31 @@ class PlaceViewSet(viewsets.ModelViewSet):
             places, radius = self._get_places(request)
         except TypeError:
             return Response(
-                {'message': LON_LAT_REQUIRED},
+                {'detail': LON_LAT_REQUIRED},
                 status.HTTP_400_BAD_REQUEST
             )
         except ValueError:
             return Response(
-                {'message': LON_LAT_FLOAT},
+                {'detail': LON_LAT_FLOAT},
                 status.HTTP_400_BAD_REQUEST
             )
         except RuntimeError as e:
-            return Response({'message': str(e)}, status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': str(e)}, status.HTTP_400_BAD_REQUEST)
 
         # TODO Validate request.data
 
         # Calculate wieghts
-        # TODO Dynamic weights
         categories_weight = 8
         wheelchair_weight = 2 * int(request.data.get('wheelchair', 0) > 0)
         distance_weight = 1
+        rating_weight = 3
 
-        weights = [categories_weight, wheelchair_weight, distance_weight]
+        weights = [
+            categories_weight,
+            wheelchair_weight,
+            distance_weight,
+            rating_weight
+        ]
 
         # Recommend places
         recommendation_service = CosineSimilarityRecommendationService(
@@ -168,7 +173,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
         if 'points' not in request.data:
             return Response(
-                {'message': '"points" field is required.'},
+                {'detail': '"points" field is required.'},
                 status.HTTP_400_BAD_REQUEST
             )
 
@@ -177,7 +182,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
         if type(points) != list:
             return Response(
-                {'message': '"points" must be a list of coordinates.'},
+                {'detail': '"points" must be a list of coordinates.'},
                 status.HTTP_400_BAD_REQUEST
             )
 

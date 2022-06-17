@@ -27,13 +27,17 @@ class CosineSimilarityRecommendationService(RecommendationService):
         self.radius = radius
         self.weights = weights
 
-    def __preprocess(self, df) -> pd.DataFrame:
+    def __preprocess(self, df, wheelchair) -> pd.DataFrame:
         '''Handles place data preprocessing.'''
 
         # Map wheelchair values to numbers
         df['wheelchair'] = df['wheelchair'].map(
             {'no': -1, 'limited': 1, 'yes': 2}
         ).fillna(0)
+
+        # Prune places without wheelchair access
+        if wheelchair > 0:
+            df = df[df['wheelchair'] >= 0]
 
         return df
 
@@ -72,28 +76,38 @@ class CosineSimilarityRecommendationService(RecommendationService):
         Recommends the most suitable places for a user
         based on the provided criteria.
         '''
-        df = self.__preprocess(pd.DataFrame(places))
+        wheelchair = user_features.get('wheelchair', 0)
+
+        df = self.__preprocess(pd.DataFrame(places), wheelchair)
 
         # Category Score
         df['category_similarity'] = self.__calculate_category_similarity(
             df['categories'], user_features.get('categories', [])
         )
 
-        wheelchair = user_features.get('wheelchair', 0)
-
         # Calculate the final feature vector
         features = df[
-            ['id', 'category_similarity', 'wheelchair', 'distance']
+            ['id', 'category_similarity', 'wheelchair', 'distance', 'rating']
         ].copy()
 
         max_distance = features['distance'].max() - 0.000001
         features['distance'] = 1 - (features['distance'] / max_distance)
 
+        features['rating'].fillna(0, inplace=True)
+
         # Use the feature vector to calculate a score for each place
         df['score'] = features.apply(
             lambda v: 1 - distance.cosine(
-                [1.0, wheelchair, 1.0],
-                [10*v['category_similarity'], v['wheelchair'], v['distance']],
+                # Ideal vector
+                [1.0, wheelchair, 1.0, 1.0],
+
+                # Place vector
+                [
+                    10*v['category_similarity'],
+                    v['wheelchair'],
+                    v['distance'],
+                    v['rating'] / 5.0
+                ],
                 w=self.weights
             ), axis=1
         )
