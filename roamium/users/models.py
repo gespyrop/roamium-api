@@ -1,6 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,\
+    PermissionsMixin
 from django.utils import timezone
+
 
 class UserManager(BaseUserManager):
 
@@ -9,18 +11,24 @@ class UserManager(BaseUserManager):
             if not value:
                 raise ValueError(f'The {field_name} value must be set')
 
-    def create_user(self, email, first_name, last_name, password=None, **kwargs):
+    def create_user(
+        self, email, first_name, last_name, password=None, **kwargs
+    ):
         '''Creates a user with email and password'''
         if not email:
             raise ValueError('The email value must be set')
         self._check_fields((first_name, last_name))
-        user = self.model(email=email, first_name=first_name, last_name=last_name, **kwargs)
+        user = self.model(
+            email=email, first_name=first_name, last_name=last_name, **kwargs
+        )
         user.set_password(password)
         user.save()
 
         return user
 
-    def create_superuser(self, email, first_name, last_name, password=None, **kwargs):
+    def create_superuser(
+        self, email, first_name, last_name, password=None, **kwargs
+    ):
         '''Creates an admin with email and password'''
         user = self.create_user(email, first_name, last_name, password)
         user.is_staff = True

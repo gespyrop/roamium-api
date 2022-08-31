@@ -1,8 +1,7 @@
-from django.shortcuts import render
 from rest_framework import viewsets, permissions
-from .serializers import UserSerializer
-from .models import User
-from .permissions import IsSelfOrAdmin
+from roamium.users.serializers import UserSerializer
+from roamium.users.models import User
+from roamium.users.permissions import IsSelfOrAdmin
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -12,9 +11,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'create':
             return [permissions.AllowAny()]
-        
+
         if self.action in ('update', 'partial_update', 'destroy'):
             return [permissions.IsAuthenticated(), IsSelfOrAdmin()]
 
         return super(UserViewSet, self).get_permissions()
-
