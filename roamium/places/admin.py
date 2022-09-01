@@ -5,7 +5,7 @@ from .models import Place, OSMPlace, Category
 
 @admin.register(Place)
 class PlaceAdmin(OSMGeoAdmin):
-    list_display = ('name', 'location_display', 'time')
+    list_display = ('name', 'location_display')
     default_lat = 37.9838
     default_lon = 23.7275
     default_zoom = 3

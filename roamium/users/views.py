@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
-from roamium.users.serializers import UserSerializer
-from roamium.users.models import User
-from roamium.users.permissions import IsSelfOrAdmin
+from .serializers import UserSerializer
+from .models import User
+from .permissions import IsSelfOrAdmin
 
 
 class UserViewSet(viewsets.ModelViewSet):

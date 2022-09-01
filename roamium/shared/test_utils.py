@@ -18,7 +18,6 @@ place_payload = {
         'latitude': 0.0,
         'longitude': 0.0
     },
-    'time': '00:10:00',
     'wheelchair': 'no',
 }
 
