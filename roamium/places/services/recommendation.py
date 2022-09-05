@@ -23,8 +23,7 @@ class CosineSimilarityRecommendationService(RecommendationService):
     Handles the place recommendation logic using weighted cosine similarity.
     '''
 
-    def __init__(self, radius, weights):
-        self.radius = radius
+    def __init__(self, weights):
         self.weights = weights
 
     def __preprocess(self, df, wheelchair) -> pd.DataFrame:

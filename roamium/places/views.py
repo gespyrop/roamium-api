@@ -140,8 +140,6 @@ class PlaceViewSet(viewsets.ModelViewSet):
         except RuntimeError as e:
             return Response({'detail': str(e)}, status.HTTP_400_BAD_REQUEST)
 
-        # TODO Validate request.data
-
         # Calculate wieghts
         categories_weight = 8
         wheelchair_weight = 2 * int(request.data.get('wheelchair', 0) > 0)
@@ -186,7 +184,6 @@ class PlaceViewSet(viewsets.ModelViewSet):
                 status.HTTP_400_BAD_REQUEST
             )
 
-        # TODO Handle ORS API exceptions
         directions_service = ORSDirectionsService(ORS_API_KEY)
         geometry, distance, duration = directions_service.get_directions(
             points,

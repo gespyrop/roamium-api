@@ -21,7 +21,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework import routers
+
 
 # Aggregate all apps in custom API root
 @api_view(['GET'])
@@ -31,8 +31,11 @@ def api_root(request, format=None):
         'users': reverse('user-list', request=request, format=format),
         'places': reverse('place-list', request=request, format=format),
         'login': reverse('token_obtain_pair', request=request, format=format),
-        'refresh_token': reverse('token_refresh', request=request, format=format),
+        'refresh_token': reverse(
+            'token_refresh', request=request, format=format
+        ),
     })
+
 
 # Custom Admin Panel
 admin.site.site_header = 'Roamium Admin Panel'
@@ -45,6 +48,10 @@ urlpatterns = [
     path('api/user/', include('users.urls')),
     path('api/place/', include('places.urls')),
     path('api/route/', include('routes.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path(
+        'api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'
+    ),
+    path(
+        'api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'
+    ),
 ]

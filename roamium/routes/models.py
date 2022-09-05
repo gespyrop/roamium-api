@@ -32,3 +32,6 @@ class Review(models.Model):
     stars = models.IntegerField(
         validators=(MinValueValidator(1), MaxValueValidator(5))
     )
+
+    def __str__(self) -> str:
+        return f'{self.visit.name} {self.visit.timestamp} ({self.stars})'
