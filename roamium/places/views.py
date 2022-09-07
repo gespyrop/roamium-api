@@ -155,7 +155,6 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
         # Recommend places
         recommendation_service = CosineSimilarityRecommendationService(
-            radius=radius,
             weights=weights
         )
 

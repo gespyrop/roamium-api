@@ -66,7 +66,9 @@ class CosineSimilarityRecommendationService(RecommendationService):
         # Return the cosine similarity between the user's
         # category feature vector and each of the place feature vectors.
         return place_feature_vectors.apply(
-            lambda vector: 1 - distance.cosine(vector, user_feature_vector),
+            lambda vector: 1 - distance.cosine(
+                vector, user_feature_vector.squeeze()
+            ),
             axis=1
         )
 
