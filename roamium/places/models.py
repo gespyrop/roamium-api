@@ -45,7 +45,7 @@ class Place(models.Model):
 
 
 class OSMPlace(models.Model):
-    osm_id = models.IntegerField(primary_key=True)
+    osm_id = models.CharField(primary_key=True, max_length=15)
     name = models.CharField(max_length=50, blank=True, null=True)
     categories = models.ManyToManyField(Category)
     wheelchair = models.CharField(
