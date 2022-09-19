@@ -1,4 +1,4 @@
-# Roamium
+# Roamium API
 
 The official REST API that powers the Roamium application.
 
